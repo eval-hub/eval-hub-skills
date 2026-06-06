@@ -2,7 +2,7 @@ SKILL_NAME := evalhub
 SKILL_DIR  := $(CURDIR)/$(SKILL_NAME)
 TARGET_DIR := $(HOME)/.claude/skills/$(SKILL_NAME)
 
-.PHONY: help install uninstall update check
+.PHONY: help install uninstall update check lint test
 
 help: ## Show available targets
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | \
@@ -29,6 +29,14 @@ uninstall: ## Remove the skill from ~/.claude/skills/
 	fi
 
 update: uninstall install ## Update the skill (re-link)
+
+lint: ## Lint Python scripts (ruff) and shell scripts (shellcheck)
+	uvx ruff check evalhub/scripts/
+	uvx ruff format --check evalhub/scripts/
+	shellcheck test-skill.sh
+
+test: ## Run unit tests (no live service required)
+	pytest tests/ -v
 
 check: ## Validate skill structure
 	@test -f "$(SKILL_DIR)/SKILL.md" || { echo "Error: SKILL.md not found in $(SKILL_DIR)"; exit 1; }

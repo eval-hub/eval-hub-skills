@@ -1,0 +1,27 @@
+name: Validate
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  structure:
+    name: Plugin structure
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check SKILL.md exists
+        run: test -f evalhub/SKILL.md
+      - name: Check scripts directory
+        run: test -d evalhub/scripts
+      - name: Check required scripts
+        run: |
+          for script in evalhub_check evalhub_providers evalhub_collections evalhub_eval evalhub_status evalhub_logs; do
+            test -f "evalhub/scripts/${script}.py" || { echo "Missing: ${script}.py"; exit 1; }
+          done
+      - name: Validate plugin.json
+        run: python -m json.tool .claude-plugin/plugin.json > /dev/null
+      - name: Validate marketplace.json
+        run: python -m json.tool .claude-plugin/marketplace.json > /dev/null
