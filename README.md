@@ -19,13 +19,26 @@ These skills enable AI coding agents (Claude Code, Copilot, Codex, etc.) to disc
 - Network access to an EvalHub service
 - `EVALHUB_BASE_URL`, `EVALHUB_TOKEN`, `EVALHUB_TENANT` environment variables
 
-### Install into Claude Code
+### Install via Claude Code plugin (recommended)
 
 ```bash
+/plugin marketplace add eval-hub/eval-hub-skills
+/plugin install evalhub@evalhub
+```
+
+The skill is then available as `/evalhub:evalhub` in any Claude Code session.
+
+### Install locally (development)
+
+Clone the repo and symlink the skill into `~/.claude/skills/`:
+
+```bash
+git clone https://github.com/eval-hub/eval-hub-skills
+cd eval-hub-skills
 make install
 ```
 
-This creates a symlink at `~/.claude/skills/eval-hub` pointing to the `eval-hub/` directory. Changes to the skill source are reflected immediately.
+Changes to the skill source are reflected immediately without reinstalling.
 
 ### Uninstall
 

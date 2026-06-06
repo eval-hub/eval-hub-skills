@@ -1,0 +1,15 @@
+{
+  "name": "evalhub",
+  "owner": { "name": "EvalHub" },
+  "metadata": { "description": "EvalHub agent skills for Claude Code" },
+  "plugins": [
+    {
+      "name": "evalhub",
+      "description": "Evaluate AI/ML models, run benchmarks, manage evaluation jobs, and follow EDD workflows",
+      "version": "0.1.0",
+      "license": "Apache-2.0",
+      "source": { "source": "github", "repo": "eval-hub/eval-hub-skills", "ref": "main" },
+      "skills": ["./evalhub"]
+    }
+  ]
+}
