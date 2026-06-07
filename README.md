@@ -12,7 +12,10 @@ These skills enable AI coding agents (Claude Code, Copilot, Codex, etc.) to disc
 
 | Skill | Description |
 |-------|-------------|
-| `eval-hub` | Evaluate AI/ML models, run benchmarks, manage evaluation jobs, follow EDD workflows |
+| `evalhub` | Full skill — discovery, evaluation, job lifecycle, and EDD workflows |
+| `evalhub-discovery` | Discover providers, benchmarks, and collections; read agent metadata |
+| `evalhub-eval` | Submit evaluation jobs against benchmarks or collections |
+| `evalhub-jobs` | Monitor, wait on, cancel, and fetch logs for evaluation jobs |
 
 ## Installation
 
@@ -34,11 +37,17 @@ The skill is then available as `/evalhub:evalhub` in any Claude Code session.
 
 ### Install locally (development)
 
-Clone the repo and symlink the skill into `~/.claude/skills/`:
+Clone the repo and symlink the skills into `~/.claude/skills/`:
 
 ```bash
 git clone https://github.com/eval-hub/eval-hub-skills
 cd eval-hub-skills
+make install-all   # installs all four skills
+```
+
+To install only the primary skill:
+
+```bash
 make install
 ```
 
@@ -47,13 +56,14 @@ Changes to the skill source are reflected immediately without reinstalling.
 ### Uninstall
 
 ```bash
-make uninstall
+make uninstall-all   # remove all skills
+make uninstall       # remove primary skill only
 ```
 
 ### Update
 
 ```bash
-make update
+make update-all
 ```
 
 ### Validate
