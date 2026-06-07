@@ -17,7 +17,11 @@ def main() -> None:
             missing.append(var)
 
     if missing:
-        print(json.dumps({"ok": False, "error": f"Missing environment variables: {', '.join(missing)}"}))
+        print(
+            json.dumps(
+                {"ok": False, "error": f"Missing environment variables: {', '.join(missing)}"}
+            )
+        )
         sys.exit(1)
 
     from evalhub import SyncEvalHubClient
@@ -31,12 +35,18 @@ def main() -> None:
 
     try:
         health = client.health()
-        print(json.dumps({
-            "ok": True,
-            "base_url": os.environ["EVALHUB_BASE_URL"],
-            "tenant": os.environ["EVALHUB_TENANT"],
-            "health": health,
-        }, indent=2, default=str))
+        print(
+            json.dumps(
+                {
+                    "ok": True,
+                    "base_url": os.environ["EVALHUB_BASE_URL"],
+                    "tenant": os.environ["EVALHUB_TENANT"],
+                    "health": health,
+                },
+                indent=2,
+                default=str,
+            )
+        )
     except Exception as e:
         print(json.dumps({"ok": False, "error": str(e)}), file=sys.stderr)
         sys.exit(1)

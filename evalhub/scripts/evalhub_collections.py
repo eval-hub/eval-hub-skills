@@ -32,8 +32,12 @@ def _extract_agent(obj):
 def main() -> None:
     parser = argparse.ArgumentParser(description="List EvalHub benchmark collections")
     parser.add_argument("collection_id", nargs="?", help="Get a specific collection by ID")
-    parser.add_argument("--agent", action="store_true", help="Include agent discoverability metadata")
-    parser.add_argument("--evaluates", help="Filter collections whose agent.evaluates contains this tag")
+    parser.add_argument(
+        "--agent", action="store_true", help="Include agent discoverability metadata"
+    )
+    parser.add_argument(
+        "--evaluates", help="Filter collections whose agent.evaluates contains this tag"
+    )
     args = parser.parse_args()
 
     client = get_client()

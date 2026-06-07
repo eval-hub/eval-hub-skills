@@ -8,7 +8,6 @@
 import argparse
 import json
 import os
-import sys
 
 
 def get_client():
@@ -24,21 +23,29 @@ def get_client():
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Create an EvalHub evaluation job")
-    parser.add_argument("--json", dest="json_file", help="Submit a pre-built JSON request body from file")
+    parser.add_argument(
+        "--json", dest="json_file", help="Submit a pre-built JSON request body from file"
+    )
     parser.add_argument("--model-url", help="Model inference endpoint URL")
     parser.add_argument("--model-name", help="Model name")
     parser.add_argument("--model-secret", help="Kubernetes secret name for model auth")
     parser.add_argument("--provider", help="Provider ID (discover with evalhub_providers.py)")
-    parser.add_argument("--benchmark", action="append", dest="benchmarks", help="Benchmark ID (repeatable)")
+    parser.add_argument(
+        "--benchmark", action="append", dest="benchmarks", help="Benchmark ID (repeatable)"
+    )
     parser.add_argument("--collection", help="Collection ID (alternative to --benchmark)")
     parser.add_argument("--name", help="Job name (auto-generated if omitted)")
     parser.add_argument("--description", help="Job description")
     parser.add_argument("--tag", action="append", dest="tags", help="Tag (repeatable)")
-    parser.add_argument("--num-examples", type=int, help="Limit benchmark to N examples (for quick iteration)")
+    parser.add_argument(
+        "--num-examples", type=int, help="Limit benchmark to N examples (for quick iteration)"
+    )
     parser.add_argument("--threshold", type=float, help="Pass/fail threshold (0.0-1.0)")
     parser.add_argument("--experiment-name", help="MLflow experiment name")
     parser.add_argument("--queue", help="Kueue queue name for job scheduling")
-    parser.add_argument("--dry-run", action="store_true", help="Print request JSON without submitting")
+    parser.add_argument(
+        "--dry-run", action="store_true", help="Print request JSON without submitting"
+    )
     args = parser.parse_args()
 
     client = get_client() if not args.dry_run else None
@@ -47,6 +54,7 @@ def main() -> None:
         with open(args.json_file) as f:
             request_data = json.load(f)
         from evalhub import JobSubmissionRequest
+
         request = JobSubmissionRequest(**request_data)
     else:
         if not args.model_url or not args.model_name:
@@ -59,6 +67,7 @@ def main() -> None:
         model_auth = None
         if args.model_secret:
             from evalhub.models.api import ModelAuth
+
             model_auth = ModelAuth(secret_ref=args.model_secret)
 
         model = ModelConfig(url=args.model_url, name=args.model_name, auth=model_auth)
@@ -76,6 +85,7 @@ def main() -> None:
                     config.parameters = {"num_examples": args.num_examples}
                 if args.threshold is not None:
                     from evalhub.models.api import PassCriteria
+
                     config.pass_criteria = PassCriteria(threshold=args.threshold)
                 benchmarks.append(config)
 
@@ -87,16 +97,19 @@ def main() -> None:
         experiment = None
         if args.experiment_name:
             from evalhub import ExperimentConfig
+
             experiment = ExperimentConfig(name=args.experiment_name)
 
         pass_criteria = None
         if args.threshold is not None and not args.benchmarks:
             from evalhub.models.api import PassCriteria
+
             pass_criteria = PassCriteria(threshold=args.threshold)
 
         queue = None
         if args.queue:
             from evalhub.models.api import QueueConfig
+
             queue = QueueConfig(name=args.queue)
 
         request = JobSubmissionRequest(

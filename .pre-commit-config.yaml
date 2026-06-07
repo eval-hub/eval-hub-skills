@@ -1,0 +1,31 @@
+repos:
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.9.0
+    hooks:
+      - id: ruff
+        args: [--fix]
+        files: ^evalhub/scripts/
+      - id: ruff-format
+        files: ^evalhub/scripts/
+
+  - repo: https://github.com/shellcheck-py/shellcheck-py
+    rev: v0.10.0.1
+    hooks:
+      - id: shellcheck
+        files: ^test-skill\.sh$
+
+  - repo: local
+    hooks:
+      - id: skillsaw
+        name: skillsaw
+        language: system
+        entry: bash -c 'set -e; for d in evalhub evalhub-discovery evalhub-eval evalhub-jobs; do (cd "$d" && uvx skillsaw lint SKILL.md); done'
+        pass_filenames: false
+
+      - id: pytest
+        name: pytest
+        language: system
+        entry: pytest
+        args: [tests/, -v, --tb=short]
+        pass_filenames: false
+        always_run: true

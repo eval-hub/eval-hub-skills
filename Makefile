@@ -60,7 +60,7 @@ lint: ## Lint Python scripts (ruff), shell scripts (shellcheck), and SKILL.md fi
 	uvx ruff check evalhub/scripts/
 	uvx ruff format --check evalhub/scripts/
 	shellcheck test-skill.sh
-	uvx skillsaw evalhub/SKILL.md evalhub-discovery/SKILL.md evalhub-eval/SKILL.md evalhub-jobs/SKILL.md
+	uvx skillsaw lint evalhub/SKILL.md evalhub-discovery/SKILL.md evalhub-eval/SKILL.md evalhub-jobs/SKILL.md
 
 test: ## Run unit tests (no live service required)
 	pytest tests/ -v

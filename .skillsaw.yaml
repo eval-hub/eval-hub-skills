@@ -1,6 +1,22 @@
+# skillsaw configuration
+# https://github.com/stbenjam/skillsaw
+
+version: "0.11.5"
+
 rules:
+  agentskill-name:
+    enabled: false
+
   context-budget:
-    warning: 4000
-    error: 8000
-  content-critical-position: info
-  agentskill-name: disabled
+    enabled: true
+    severity: warning
+    limits:
+      skill:
+        warn: 4000
+        error: 8000
+
+  content-critical-position:
+    enabled: true
+    severity: info
+
+strict: true

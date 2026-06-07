@@ -35,10 +35,17 @@ def main() -> None:
     parser.add_argument("--benchmarks", action="store_true", help="Include benchmark details")
     parser.add_argument("--provider", help="Filter benchmarks by provider ID (with --benchmarks)")
     parser.add_argument("--category", help="Filter benchmarks by category (with --benchmarks)")
-    parser.add_argument("--agent", action="store_true", help="Include agent discoverability metadata")
-    parser.add_argument("--target-type", choices=["model", "agent", "inference_server"],
-                        help="Filter providers by target type (model, agent, inference_server)")
-    parser.add_argument("--evaluates", help="Filter providers whose agent.evaluates contains this tag")
+    parser.add_argument(
+        "--agent", action="store_true", help="Include agent discoverability metadata"
+    )
+    parser.add_argument(
+        "--target-type",
+        choices=["model", "agent", "inference_server"],
+        help="Filter providers by target type (model, agent, inference_server)",
+    )
+    parser.add_argument(
+        "--evaluates", help="Filter providers whose agent.evaluates contains this tag"
+    )
     args = parser.parse_args()
 
     client = get_client()

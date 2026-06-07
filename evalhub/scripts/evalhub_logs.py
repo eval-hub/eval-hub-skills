@@ -26,7 +26,12 @@ def main() -> None:
     insecure = os.environ.get("EVALHUB_INSECURE", "").lower() in ("1", "true")
 
     if not base_url or not token or not tenant:
-        print(json.dumps({"error": "EVALHUB_BASE_URL, EVALHUB_TOKEN, and EVALHUB_TENANT must be set"}), file=sys.stderr)
+        print(
+            json.dumps(
+                {"error": "EVALHUB_BASE_URL, EVALHUB_TOKEN, and EVALHUB_TENANT must be set"}
+            ),
+            file=sys.stderr,
+        )
         sys.exit(1)
 
     url = f"{base_url.rstrip('/')}/api/v1/evaluations/jobs/{args.job_id}/logs"
@@ -53,7 +58,10 @@ def main() -> None:
         else:
             print(json.dumps(data, indent=2))
     except httpx.HTTPStatusError as e:
-        print(json.dumps({"error": f"HTTP {e.response.status_code}: {e.response.text}"}), file=sys.stderr)
+        print(
+            json.dumps({"error": f"HTTP {e.response.status_code}: {e.response.text}"}),
+            file=sys.stderr,
+        )
         sys.exit(1)
     except Exception as e:
         print(json.dumps({"error": str(e)}), file=sys.stderr)

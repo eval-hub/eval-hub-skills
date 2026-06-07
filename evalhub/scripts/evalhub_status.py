@@ -25,12 +25,21 @@ def get_client():
 def main() -> None:
     parser = argparse.ArgumentParser(description="Get EvalHub job status")
     parser.add_argument("job_id", nargs="?", help="Job ID to check")
-    parser.add_argument("--wait", action="store_true", help="Poll until job reaches a terminal state")
-    parser.add_argument("--timeout", type=float, default=600, help="Timeout in seconds for --wait (default: 600)")
-    parser.add_argument("--interval", type=float, default=10, help="Poll interval in seconds (default: 10)")
+    parser.add_argument(
+        "--wait", action="store_true", help="Poll until job reaches a terminal state"
+    )
+    parser.add_argument(
+        "--timeout", type=float, default=600, help="Timeout in seconds for --wait (default: 600)"
+    )
+    parser.add_argument(
+        "--interval", type=float, default=10, help="Poll interval in seconds (default: 10)"
+    )
     parser.add_argument("--cancel", action="store_true", help="Cancel the job")
     parser.add_argument("--list", action="store_true", dest="list_jobs", help="List all jobs")
-    parser.add_argument("--status", help="Filter by status when listing (pending, running, completed, failed, cancelled)")
+    parser.add_argument(
+        "--status",
+        help="Filter by status when listing (pending, running, completed, failed, cancelled)",
+    )
     parser.add_argument("--limit", type=int, help="Max jobs to return when listing")
     args = parser.parse_args()
 
@@ -38,6 +47,7 @@ def main() -> None:
 
     if args.list_jobs:
         from evalhub import JobStatus
+
         status_filter = None
         if args.status:
             status_filter = JobStatus(args.status)
@@ -63,7 +73,10 @@ def main() -> None:
             client.jobs.cancel(args.job_id)
             print(json.dumps({"cancelled": True, "job_id": args.job_id}))
         except Exception as e:
-            print(json.dumps({"cancelled": False, "job_id": args.job_id, "error": str(e)}), file=sys.stderr)
+            print(
+                json.dumps({"cancelled": False, "job_id": args.job_id, "error": str(e)}),
+                file=sys.stderr,
+            )
             sys.exit(1)
         return
 
@@ -75,7 +88,10 @@ def main() -> None:
                 poll_interval=args.interval,
             )
         except TimeoutError:
-            print(json.dumps({"error": f"Job {args.job_id} did not complete within {args.timeout}s"}), file=sys.stderr)
+            print(
+                json.dumps({"error": f"Job {args.job_id} did not complete within {args.timeout}s"}),
+                file=sys.stderr,
+            )
             sys.exit(1)
     else:
         job = client.jobs.get(args.job_id)
