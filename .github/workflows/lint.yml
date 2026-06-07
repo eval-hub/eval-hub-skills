@@ -34,8 +34,6 @@ jobs:
         run: pip install skillsaw
       - name: Lint SKILL.md files
         run: |
-          skillsaw lint \
-            evalhub/SKILL.md \
-            evalhub-discovery/SKILL.md \
-            evalhub-eval/SKILL.md \
-            evalhub-jobs/SKILL.md
+          for d in evalhub evalhub-discovery evalhub-eval evalhub-jobs; do
+            (cd "$d" && skillsaw lint SKILL.md)
+          done
