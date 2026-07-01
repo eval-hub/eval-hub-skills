@@ -13,7 +13,7 @@ All provider and collection knowledge comes from the API at runtime. Do not hard
 ## Rules
 
 - **Prefer MCP over scripts** — if the `evalhub` MCP server is connected (its tools appear as `mcp__evalhub__*`), use MCP tools and resources for all operations. Fall back to Python scripts only when MCP is unavailable or for operations with no MCP equivalent (logs, health check).
-- **Use ONLY the provided scripts when not using MCP** — never write custom Python, jq, or inline code to process results. The scripts already format output correctly.
+- **Use ONLY the provided scripts when not using MCP** — never write custom Python, jq, or inline code to process results. The scripts already format output.
 - **Minimise API calls** — one round of two parallel reads (`evalhub://providers` + `evalhub://collections` via MCP, or `--agent` scripts) gives you ALL agent metadata. Do not fetch individual providers afterwards.
 - **No health check** — skip `evalhub_check.py` unless the user reports connectivity problems.
 - **Suppress stderr** — always append `2>/dev/null` to script invocations to hide TLS and SDK diagnostic output.
