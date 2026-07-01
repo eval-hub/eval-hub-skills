@@ -11,7 +11,7 @@ These skills enable AI coding agents (Claude Code, Copilot, Codex, etc.) to disc
 ## Skills
 
 | Skill | Description |
-|-------|-------------|
+| ----- | ----------- |
 | `evalhub` | Full skill — discovery, evaluation, job lifecycle, and EDD workflows |
 | `evalhub-discovery` | Discover providers, benchmarks, and collections; read agent metadata |
 | `evalhub-eval` | Submit evaluation jobs against benchmarks or collections |
@@ -113,7 +113,7 @@ Once installed, the skill is automatically discovered by Claude Code. Ask natura
 
 The skill fetches live metadata from the API and summarises each provider:
 
-```
+```md
 Available providers:
 
 - AgentDojo — Test agent resilience to prompt injection across realistic tool-use
@@ -242,7 +242,7 @@ Available providers:
 
 > **You:** I'm about to refactor my model's safety guardrails. What should I
 > run before and after to measure the impact?
-
+>
 > **Claude:** I'd suggest this before/after plan using the live providers:
 >
 > **Before:** Run `toxicity-and-ethical-principles` (covers toxic content,
@@ -253,6 +253,24 @@ Available providers:
 > `toxigen` or `truthfulqa_mc1` means the refactor weakened a safety property.
 >
 > Want me to kick off the baseline run now?
+
+## Development skills
+
+These skills are for use during the development of `eval-hub` components.
+
+| Skill | Description |
+| ----- | ----------- |
+| `golang-cve-update` | Scans Go repositories for vulnerabilities. |
+
+### golang-cve-update
+
+**`golang-cve-update`** (`dev-skills/golang-cve-update/`) scans Go repositories for vulnerabilities with `govulncheck`, determines the minimum fixed Go version, and updates version pins in `go.mod`, container files, and CI only when a matching tag exists on `registry.access.redhat.com/ubi9/go-toolset`. If Red Hat has not published the required image yet, the skill reports the gap and leaves version files unchanged.
+
+#### Installation
+
+```shell
+/plugin install golang-cve-update@evalhub
+```
 
 ## License
 
