@@ -8,8 +8,16 @@
       "description": "Evaluate AI/ML models, run benchmarks, manage evaluation jobs, and follow EDD workflows",
       "version": "0.1.0",
       "license": "Apache-2.0",
-      "source": { "source": "github", "repo": "ruivieira/eval-hub-skills", "ref": "main" },
+      "source": { "source": "github", "repo": "eval-hub/eval-hub-skills", "ref": "main" },
       "skills": ["./evalhub"]
+    },
+    {
+      "name": "golang-cve-update",
+      "description": "Scan Go repositories for vulnerabilities, determine minimum fixed Go version, and update version pins in go.mod, container files, and CI only when a matching tag exists on registry.access.redhat.com/ubi9/go-toolset",
+      "version": "0.1.0",
+      "license": "Apache-2.0",
+      "source": { "source": "github", "repo": "eval-hub/eval-hub-skills", "ref": "main" },
+      "skills": ["./dev-skills/golang-cve-update"]
     }
   ]
 }

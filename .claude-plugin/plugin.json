@@ -2,7 +2,7 @@
   "name": "evalhub",
   "description": "Agent skills for EvalHub — evaluate AI/ML models, run benchmarks, manage evaluation jobs, and follow EDD workflows",
   "version": "0.1.0",
-  "repository": "https://github.com/ruivieira/eval-hub-skills",
+  "repository": "https://github.com/eval-hub/eval-hub-skills",
   "author": {
     "name": "EvalHub"
   }

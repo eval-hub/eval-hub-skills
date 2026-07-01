@@ -7,3 +7,4 @@ __pycache__/
 /.idea/modules.xml
 /.idea/vcs.xml
 /test-skill.sh
+.DS_Store
