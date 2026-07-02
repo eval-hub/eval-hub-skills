@@ -1,8 +1,8 @@
 # eval-hub-skills
 
-[![Lint](https://github.com/ruivieira/eval-hub-skills/actions/workflows/lint.yml/badge.svg)](https://github.com/ruivieira/eval-hub-skills/actions/workflows/lint.yml)
-[![Test](https://github.com/ruivieira/eval-hub-skills/actions/workflows/test.yml/badge.svg)](https://github.com/ruivieira/eval-hub-skills/actions/workflows/test.yml)
-[![Validate](https://github.com/ruivieira/eval-hub-skills/actions/workflows/validate.yml/badge.svg)](https://github.com/ruivieira/eval-hub-skills/actions/workflows/validate.yml)
+[![Lint](https://github.com/eval-hub/eval-hub-skills/actions/workflows/lint.yml/badge.svg)](https://github.com/eval-hub/eval-hub-skills/actions/workflows/lint.yml)
+[![Test](https://github.com/eval-hub/eval-hub-skills/actions/workflows/test.yml/badge.svg)](https://github.com/eval-hub/eval-hub-skills/actions/workflows/test.yml)
+[![Validate](https://github.com/eval-hub/eval-hub-skills/actions/workflows/validate.yml/badge.svg)](https://github.com/eval-hub/eval-hub-skills/actions/workflows/validate.yml)
 
 Agent Skills for EvalHub, following the [agentskills.io](https://agentskills.io) open format.
 
