@@ -269,8 +269,53 @@ These skills are for use during the development of `eval-hub` components.
 #### Installation
 
 ```shell
+/plugin marketplace add eval-hub/eval-hub-skills
 /plugin install golang-cve-update@evalhub
 ```
+
+#### Using from another repository
+
+The skill runs against whichever repository you have open in Claude Code — you do not
+need `eval-hub-skills` checked out in that project.
+
+1. Install the plugin (once), as above.
+2. Open Claude Code in the target Go repository:
+
+   ```bash
+   cd /path/to/your-go-project
+   claude
+   ```
+
+3. Invoke the skill explicitly or by intent:
+
+   ```text
+   /golang-cve-update:golang-cve-update
+   ```
+
+   Or ask naturally, for example:
+
+   ```text
+   Scan this Go repo for CVEs and bump the Go version only if ubi9/go-toolset has a matching tag.
+   ```
+
+Claude follows the workflow in `dev-skills/golang-cve-update/SKILL.md`: detect version
+pins, run `govulncheck`, determine the target Go version, verify the Red Hat
+go-toolset tag exists, then update files in **your** repository only when the gate
+passes.
+
+When running bundled scripts from another repository, use the skill's absolute path
+(not a relative `scripts/...` path). For a local clone of this repo:
+
+```bash
+/path/to/eval-hub-skills/dev-skills/golang-cve-update/scripts/scan-vulnerabilities.sh
+/path/to/eval-hub-skills/dev-skills/golang-cve-update/scripts/check-toolset-version.sh 1.26.4
+```
+
+`scan-vulnerabilities.sh` defaults to the current directory; run it from the target
+repo root or pass the repo path as an argument.
+
+**Prerequisites in the target repo:** Go installed, network access to
+`registry.access.redhat.com`, and a scannable Go project (typically with `go.mod`).
 
 ## License
 
