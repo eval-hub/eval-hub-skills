@@ -57,9 +57,9 @@ update: uninstall install ## Update the primary evalhub skill (re-link)
 update-all: uninstall-all install-all ## Update all skills (re-link)
 
 lint: ## Lint Python scripts (ruff) and SKILL.md files (skillsaw)
-	uvx ruff check evalhub/scripts/
-	uvx ruff format --check evalhub/scripts/
-	for d in evalhub evalhub-discovery evalhub-eval evalhub-jobs; do (cd "$$d" && uvx skillsaw lint SKILL.md); done
+	uvx ruff check evalhub/scripts/ dev-skills/*/scripts/
+	uvx ruff format --check evalhub/scripts/ dev-skills/*/scripts/
+	for d in evalhub evalhub-discovery evalhub-eval evalhub-jobs dev-skills/*/; do (cd "$$d" && uvx skillsaw lint SKILL.md) || exit 1; done
 
 test: ## Run unit tests (no live service required)
 	pytest tests/ -v

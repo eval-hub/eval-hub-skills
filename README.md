@@ -256,21 +256,23 @@ Available providers:
 
 ## Development skills
 
-These skills are for use during the development of `eval-hub` components.
+These skills are for use during the development of `eval-hub` components. See
+[`dev-skills/README.md`](dev-skills/README.md) for the full list and installation
+guidance for each skill.
 
 | Skill | Description |
 | ----- | ----------- |
-| `golang-cve-update` | Scans Go repositories for vulnerabilities. |
+| `golang-toolchain-update` | Scans a Go repository for vulnerabilities and updates the Go toolchain only when the repository's go-toolset image publishes a matching tag. Handles `ubi9` and `ubi10`, with minimal-CVE and latest-available modes. |
 
-### golang-cve-update
+### golang-toolchain-update
 
-**`golang-cve-update`** (`dev-skills/golang-cve-update/`) scans Go repositories for vulnerabilities with `govulncheck`, determines the minimum fixed Go version, and updates version pins in `go.mod`, container files, and CI only when a matching tag exists on `registry.access.redhat.com/ubi9/go-toolset`. If Red Hat has not published the required image yet, the skill reports the gap and leaves version files unchanged.
+**`golang-toolchain-update`** (`dev-skills/golang-toolchain-update/`) runs `govulncheck`, determines the Go version needed to clear stdlib and toolchain findings (or the newest available patch in `latest` mode), and updates version pins in `go.mod`, container files, and CI only when the relevant `registry.access.redhat.com/ubiX/go-toolset` image publishes that exact tag. The image is detected from the target repository's `Containerfile`/`Dockerfile`, or set with `--image` / `GO_TOOLSET_IMAGE`. If Red Hat has not published the required image yet, the skill reports the gap and leaves version files unchanged.
 
 #### Installation
 
 ```shell
 /plugin marketplace add eval-hub/eval-hub-skills
-/plugin install golang-cve-update@evalhub
+/plugin install golang-toolchain-update@evalhub
 ```
 
 #### Using from another repository
@@ -289,30 +291,31 @@ need `eval-hub-skills` checked out in that project.
 3. Invoke the skill explicitly or by intent:
 
    ```text
-   /golang-cve-update:golang-cve-update
+   /golang-toolchain-update:golang-toolchain-update
    ```
 
    Or ask naturally, for example:
 
    ```text
-   Scan this Go repo for CVEs and bump the Go version only if ubi9/go-toolset has a matching tag.
+   Scan this Go repo for CVEs and bump the Go version only if the repo's go-toolset image has a matching tag.
    ```
 
-Claude follows the workflow in `dev-skills/golang-cve-update/SKILL.md`: detect version
-pins, run `govulncheck`, determine the target Go version, verify the Red Hat
-go-toolset tag exists, then update files in **your** repository only when the gate
-passes.
+Claude follows the workflow in `dev-skills/golang-toolchain-update/SKILL.md`: detect the
+go-toolset image and version pins, run `govulncheck`, choose the target Go version,
+verify the Red Hat go-toolset tag exists, then update files in **your** repository only
+when the gate passes.
 
 When running bundled scripts from another repository, use the skill's absolute path
 (not a relative `scripts/...` path). For a local clone of this repo:
 
 ```bash
-/path/to/eval-hub-skills/dev-skills/golang-cve-update/scripts/scan-vulnerabilities.sh
-/path/to/eval-hub-skills/dev-skills/golang-cve-update/scripts/check-toolset-version.sh 1.26.4
+/path/to/eval-hub-skills/dev-skills/golang-toolchain-update/scripts/scan-vulnerabilities.sh
+/path/to/eval-hub-skills/dev-skills/golang-toolchain-update/scripts/check-toolset-version.sh 1.26.4
 ```
 
 `scan-vulnerabilities.sh` defaults to the current directory; run it from the target
-repo root or pass the repo path as an argument.
+repo root or pass the repo path as an argument. `check-toolset-version.sh` accepts
+`--image ubiX/go-toolset` when the target repository's container file does not name one.
 
 **Prerequisites in the target repo:** Go installed, network access to
 `registry.access.redhat.com`, and a scannable Go project (typically with `go.mod`).
