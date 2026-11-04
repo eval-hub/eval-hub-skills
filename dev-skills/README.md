@@ -1,26 +1,53 @@
 # Development skills (`dev-skills/`)
 
 Skills in this directory are **maintainer and developer workflows for the
-eval-hub repositories**. They are not part of the published `evalhub` plugin, but
-they follow the same [agentskills.io](https://agentskills.io) `SKILL.md` format.
+eval-hub repositories**. They follow the same [agentskills.io](https://agentskills.io)
+`SKILL.md` format and are published as **separate, opt-in marketplace plugins**,
+so installing `evalhub` does not install them for end users.
 
 ## Skills
 
-| Skill | Use it when |
-| ----- | ----------- |
-| `evalhub-bug-review` | Reviewing an eval-hub pull request, branch, commit range, or working-tree change for bugs. Produces a severity-ranked findings table and never edits code. |
-| `fix-fvt-test` | Diagnosing and fixing a failing FVT (godog) scenario on an OpenShift AI cluster, from the JUnit report, test log, and pod logs. |
-| `golang-toolchain-update` | Auditing a Go repository for CVEs and updating Go only when the target repository's go-toolset image (`ubi9`/`ubi10`) publishes the required tag. Two modes: minimal CVE remediation and latest-available upgrade. |
-| `release-notes` | Drafting OpenSSF-compliant, human-readable GitHub release notes for a tag or version. |
+| Skill | Plugin | Use it when |
+| ----- | ------ | ----------- |
+| `evalhub-bug-review` | `evalhub-bug-review@evalhub` | Reviewing an eval-hub pull request, branch, commit range, or working-tree change for bugs. Produces a severity-ranked findings table and never edits code. |
+| `fix-fvt-test` | `fix-fvt-test@evalhub` | Diagnosing and fixing a failing FVT (godog) scenario on an OpenShift AI cluster, from the JUnit report, test log, and pod logs. |
+| `golang-toolchain-update` | `golang-toolchain-update@evalhub` | Auditing a Go repository for CVEs and updating Go only when the target repository's go-toolset image (`ubi9`/`ubi10`) publishes the required tag. Two modes: minimal CVE remediation and latest-available upgrade. |
+| `release-notes` | `release-notes@evalhub` | Drafting OpenSSF-compliant, human-readable GitHub release notes for a tag or version. |
 
 ## Using a dev skill
 
-`make install-all` only links the four published plugin skills, so dev skills are
-not installed automatically. Make one available to your agent in whichever way
-your harness supports, for example:
+### Claude Code (recommended)
+
+```text
+/plugin marketplace add eval-hub/eval-hub-skills
+/plugin install evalhub-bug-review@evalhub
+```
+
+Repeat `/plugin install <skill>@evalhub` for the ones you want. Projects can
+declare the marketplace and enable the plugins for the whole team in a committed
+`.claude/settings.json`:
+
+```json
+{
+  "extraKnownMarketplaces": {
+    "evalhub": { "source": { "source": "github", "repo": "eval-hub/eval-hub-skills" } }
+  },
+  "enabledPlugins": {
+    "evalhub-bug-review@evalhub": true,
+    "fix-fvt-test@evalhub": true,
+    "golang-toolchain-update@evalhub": true,
+    "release-notes@evalhub": true
+  }
+}
+```
+
+### Other harnesses
+
+`make install-all` only links the four `evalhub*` skills, so dev skills are not
+installed automatically. Symlink the ones you need, or attach the skill file:
 
 ```bash
-# Claude Code: symlink the skill directory into your personal skills directory
+# Claude Code / any harness that reads ~/.claude/skills
 ln -s "$PWD/dev-skills/evalhub-bug-review" "$HOME/.claude/skills/evalhub-bug-review"
 ```
 
@@ -32,11 +59,12 @@ ln -s "$PWD/dev-skills/evalhub-bug-review" "$HOME/.claude/skills/evalhub-bug-rev
 Then invoke it by name (for example `/evalhub-bug-review`) from a checkout of the
 repository the skill operates on.
 
-## Why these live outside the plugin
+## Why these are separate plugins
 
 `evalhub`, `evalhub-discovery`, `evalhub-eval`, and `evalhub-jobs` are the
-published plugin skills. `dev-skills/` is deliberately excluded from the plugin
-payload so maintainer workflows are never installed for end users.
+default plugin skills. Each `dev-skills/` skill is published as its own plugin so
+maintainer workflows are installed only by people who ask for them, and so they
+can be enabled per project rather than globally.
 
 ## Linting
 
