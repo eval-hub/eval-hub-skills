@@ -415,13 +415,22 @@ is the author telling you the change is not self-contained.
       **today** on the contrib default branch, not the one in the pending PR:
 
       ```bash
-      curl -s https://raw.githubusercontent.com/eval-hub/eval-hub-contrib/main/adapters/<framework>/main.py \
-        | grep -nE 'secret_ref|<removed_param>|read_model_auth_key'
+      f=$(mktemp)
+      if curl -fsSL -o "$f" \
+        "https://raw.githubusercontent.com/eval-hub/eval-hub-contrib/main/adapters/<framework>/main.py"; then
+        head -n 3 "$f"                     # it is the adapter, not an error page
+        grep -nE 'secret_ref|<removed_param>|read_model_auth_key' "$f"
+      else
+        echo 'FETCH FAILED: contract unverified, not "parameter removed"' >&2
+      fi
       ```
 
-      A parameter this PR stops declaring (or stops emitting from a fixture) must
-      already be consumed by that code, or the change is only correct after the
-      adapter ships.
+      `-f` (with `-L`) turns an HTTP error, a moved adapter, or a redirect that
+      lands on nothing into a **fetch failure**, and the grep only reads a
+      downloaded file: a missing match proves a parameter was dropped only when
+      the fetch succeeded. A parameter this PR stops declaring (or stops emitting
+      from a fixture) must already be consumed by that code, or the change is only
+      correct after the adapter ships.
 - [ ] Compare `config/providers/<framework>.yaml` with
       `adapters/<framework>/provider.yaml` on the contrib default branch. The two
       files are near-copies. A parameter eval-hub stops declaring while contrib
@@ -448,8 +457,26 @@ Probes:
 ```bash
 gh pr view <n> --json body --jq .body | grep -n -iE 'contrib|adapter image|deploy its images'
 gh api repos/eval-hub/eval-hub-contrib/pulls/<contrib-pr> --jq '{state, merged}'
-curl -s https://raw.githubusercontent.com/eval-hub/eval-hub-contrib/main/adapters/deepeval/main.py | grep -n 'eval_model_url'
-curl -s https://raw.githubusercontent.com/eval-hub/eval-hub-contrib/main/adapters/ragas/provider.yaml | grep -n 'name: judge_url'
+
+# Fetch each catalog first, then grep the downloaded file. `curl -s ... | grep`
+# reports a 404 body, an unfollowed redirect, or a transport failure as "no
+# match", which reads as catalog drift. -fsSL fails on HTTP >= 400, follows
+# redirects, and keeps a failed fetch separate from a grep no-match.
+probe() {  # probe <path under adapters/> <extended regex>
+  local f
+  f=$(mktemp) || return 1
+  if curl -fsSL -o "$f" \
+    "https://raw.githubusercontent.com/eval-hub/eval-hub-contrib/main/adapters/$1"; then
+    head -n 3 "$f"
+    grep -nE "$2" "$f" || echo "no match in $1 (fetched OK)"
+  else
+    echo "FETCH FAILED: $1 — contract unverified, not drift" >&2
+  fi
+}
+
+probe deepeval/main.py 'eval_model_url'
+probe ragas/provider.yaml 'name: judge_url'
+
 git grep -n 'image:' HEAD -- config/providers
 ```
 

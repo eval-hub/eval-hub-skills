@@ -23,7 +23,8 @@
 - `make lint`, CI, and pre-commit now cover `dev-skills/`
 - `dev-skills/README.md` and the README development-skills section now document the plugin install path (plus project-level `extraKnownMarketplaces` / `enabledPlugins`) instead of describing dev skills as unpublished
 - install docs now note that Claude Code also clones a declared marketplace and downloads enabled plugins in the background, so the explicit project-scope install is the immediate/offline path
-- `dev-skills/evalhub-bug-review` now reviews cross-repo adapter and catalog coupling: a PR body note such as "deploy its images together with these catalog changes" is verified against the referenced `eval-hub-contrib` PR's merge state, the adapter code on contrib's default branch, and the provider YAML it still declares
+- `dev-skills/evalhub-bug-review` now reviews cross-repo adapter and catalog coupling: a PR body note such as "deploy its images together with these catalog changes" is verified against the referenced `eval-hub-contrib` PR's merge state, the adapter code on contrib's default branch, and the provider YAML it still declares. The adapter probes fetch the catalog before grepping it, so an HTTP error or transport failure is reported as an unverified contract instead of catalog drift
+- `dev-skills/evalhub-bug-review/SKILL.md` is back under the 150-line limit: step detail lives in `checklists.md`, and the severity rubric and rating rules moved to `report-template.md`
 
 ### Removed
 - `golang-version-update` skill and its `fetch-go-toolset-tags.sh` script (merged into `golang-toolchain-update`)
