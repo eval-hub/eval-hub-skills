@@ -277,8 +277,10 @@ Each one is published as its own opt-in marketplace plugin, so installing
 | `release-notes` | Drafts OpenSSF-compliant, human-readable release notes (summary plus upgrade impact) for a tag or version. |
 
 Projects can enable the whole set for everyone by committing a
-`.claude/settings.json` with `extraKnownMarketplaces` and `enabledPlugins`; see
-[`dev-skills/README.md`](dev-skills/README.md#using-a-dev-skill) for the snippet.
+`.claude/settings.json` with `extraKnownMarketplaces` and `enabledPlugins`. That
+enables but does not download them, so each collaborator still installs the
+plugins once with `--scope project`; see
+[`dev-skills/README.md`](dev-skills/README.md#using-a-dev-skill) for both steps.
 
 ### golang-toolchain-update
 

@@ -18,14 +18,25 @@ so installing `evalhub` does not install them for end users.
 
 ### Claude Code (recommended)
 
+Register the marketplace once:
+
 ```text
 /plugin marketplace add eval-hub/eval-hub-skills
-/plugin install evalhub-bug-review@evalhub
 ```
 
-Repeat `/plugin install <skill>@evalhub` for the ones you want. Projects can
-declare the marketplace and enable the plugins for the whole team in a committed
-`.claude/settings.json`:
+Then install the skills you want with **project scope**, so the plugin is
+recorded as enabled for everyone working in this repository:
+
+```shell
+claude plugin install evalhub-bug-review@evalhub --scope project
+```
+
+Inside a session, `/plugin install <skill>@evalhub` opens the plugin panel, where
+you can review what it adds and choose **Install for all collaborators on this
+repository (project scope)**.
+
+A committed `.claude/settings.json` declares the marketplace and **enables** the
+plugins for everyone:
 
 ```json
 {
@@ -40,6 +51,11 @@ declare the marketplace and enable the plugins for the whole team in a committed
   }
 }
 ```
+
+Enabling is not downloading: the committed settings make the plugins active for
+the repository, but each collaborator still installs them once on their own
+machine (`--scope project`, as above), because the plugin files live in that
+machine's plugin cache.
 
 ### Other harnesses
 
