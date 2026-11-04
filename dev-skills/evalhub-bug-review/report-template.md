@@ -87,6 +87,7 @@ whether a second review (for example a `@cluster` run) is needed.
 | Pre-existing issue the diff exposes | "Pre-existing, not introduced here: ... The new route makes it reachable from the API." |
 | Needs runtime confirmation | "Suspected: duplicate status events arriving out of order may reset a completed job to running; confirm with the runtime event ordering." |
 | Missing test with a concrete risk | "The new `--local` branch has no test; the `@local_runtime` FVT scenario is the only coverage for it and CI's default FVT job excludes that tag." |
+| Change depends on an unmerged external change | "The fixtures assume the adapter contract in contrib PR #263, which is open; with today's image the judge request is sent to the target endpoint, so the suite passes against the mock and misroutes against a strict upstream." |
 | Open question (not a bug) | Put it under `Coverage` as a question, not in the table. |
 | Style preference | Do not write it. |
 

@@ -114,7 +114,11 @@ Collect:
 
 1. **Intent** — PR body, linked issue, commit type (`feat`/`fix`/`refactor`).
    A `refactor` that changes behavior, or a `fix` with no regression test, is
-   itself a finding candidate.
+   itself a finding candidate. Read the body for **deploy-order and external
+   dependency statements** ("deploy its images together with these catalog
+   changes", "the related adapter changes are in contrib PR #N", "already in
+   upstream main"). Those sentences are claims to verify, not context — see
+   [checklists.md](checklists.md) §12.
 2. **Contract surfaces touched** — `docs/src/openapi.yaml`, `pkg/api` structs,
    `internal/eval_hub/messages/messages.go`, `internal/eval_hub/constants/*`,
    DB schema/migrations, `sidecar_config.json` keys, MCP tool schemas.
@@ -189,6 +193,13 @@ order (highest yield first):
    paths, correct FVT tags, no `t.Parallel()` with process-wide state.
 10. **Repo conventions** — `make fmt lint`, conventional commit, DCO sign-off,
     `Assisted-by` trailer, four-file version bump, no generated files committed.
+11. **Cross-repo adapter contract** — when the diff changes
+    `config/providers/*.yaml`, `tests/benchmarks/testdata`,
+    `tests/benchmarks/generate`, or `tests/features` jsonnet payloads, verify the
+    adapter in `eval-hub/eval-hub-contrib` still matches. Confirm the referenced
+    contrib PR's merge state and file list, read the adapter on contrib's default
+    branch, and classify the mismatch as reject (loud) or ignore (silent). See
+    [checklists.md](checklists.md) §12.
 
 ### Step 5 — Verify each finding before reporting
 
@@ -246,7 +257,7 @@ Do not pad the report with style observations to look thorough.
 | Severity | Meaning | Examples |
 |----------|---------|----------|
 | **Critical** | Data exposure, auth bypass, corruption, or crash on a normal path | tenant/owner scoping dropped so one namespace can read or mutate another's job; route added without `s.canContinueRequest`; token/secret written to logs; partial write committed by a `ServiceError` missing `.WithRollback()`; nil dereference/panic on a request path reachable by any tenant |
-| **High** | Wrong results/state, resource leak, or contract break | illegal job state transition or duplicate finalization; a created k8s resource with neither an owner reference nor a delete path (for example a ref Secret left out of the cleanup sweep); submit returns 202 but the job is never started; wrong status code vs. `docs/src/openapi.yaml`; `pkg/api` JSON tag no longer matches the spec; background work bound to the request context so long jobs die on client disconnect |
+| **High** | Wrong results/state, resource leak, or contract break | illegal job state transition or duplicate finalization; a created k8s resource with neither an owner reference nor a delete path (for example a ref Secret left out of the cleanup sweep); submit returns 202 but the job is never started; wrong status code vs. `docs/src/openapi.yaml`; `pkg/api` JSON tag no longer matches the spec; background work bound to the request context so long jobs die on client disconnect; a catalog/fixture change that needs an unreleased adapter image, so role traffic silently falls back to the primary endpoint and credential |
 | **Medium** | Wrong under specific conditions, or weakens operability | race only under concurrent events; off-by-one in pagination or `total_count`; missing nil guard for an optional API field; unbounded Prometheus label values; misleading log level; error path that loses the original error without `%w`; no regression test for the fixed bug |
 | **Low** | Documentation drift, dead code, minor clarity | stale doc/comment describing old behavior; unused helper; an unfinished marker comment without a linked issue; generated-doc edit that also changed `docs/src` inconsistently |
 

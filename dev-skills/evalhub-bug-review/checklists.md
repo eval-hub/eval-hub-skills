@@ -362,6 +362,9 @@ question under `Coverage` — never as per-line findings.
 Run these once per review; they surface most of the recurring eval-hub defects.
 
 ```bash
+# cross-repo adapter coupling claimed in the PR body
+gh pr view <n> --json body --jq .body | grep -n -iE 'contrib|adapter image|deploy its images'
+
 # scoping bypass
 grep -rn 'h\.storage\.' internal/eval_hub/handlers/*.go | grep -v _test
 
@@ -382,5 +385,71 @@ grep -n 'canContinueRequest' internal/eval_hub/server/server.go
 
 # version-bump completeness
 git diff "$(git merge-base origin/main HEAD)"...HEAD -- VERSION cmd/eval_hub/main.go Containerfile docs/src/openapi.yaml
+```
+
+## 12. Cross-repo adapter and catalog coupling
+
+Some eval-hub changes only work with an adapter image built from
+`eval-hub/eval-hub-contrib`. Provider YAML (`config/providers/*.yaml`), benchmark
+fixtures (`tests/benchmarks/testdata`), the fixture generator
+(`tests/benchmarks/generate`) and the FVT jsonnet payloads (`tests/features`) all
+encode the adapter contract, so a PR touching them can depend on an unmerged or
+unreleased adapter change. The dependency is usually stated in prose in the PR
+body, for example "deploy its images together with these catalog changes" or "the
+related adapter changes are in contrib PR #263".
+
+Treat that sentence as a **review target, not as context**. A deploy-order note
+is the author telling you the change is not self-contained.
+
+- [ ] For every contrib PR named in the body, check merge state and scope:
+
+      ```bash
+      gh api repos/eval-hub/eval-hub-contrib/pulls/<contrib-pr> --jq '{state, merged, title}'
+      gh api --paginate repos/eval-hub/eval-hub-contrib/pulls/<contrib-pr>/files --jq '.[].filename'
+      ```
+
+      A closed-but-unmerged predecessor of a newer open PR means the dependency is
+      still pending. A framework the body claims is covered but that does not
+      appear in the file list is a finding on its own.
+- [ ] For each changed catalog/fixture surface, read the adapter that runs
+      **today** on the contrib default branch, not the one in the pending PR:
+
+      ```bash
+      curl -s https://raw.githubusercontent.com/eval-hub/eval-hub-contrib/main/adapters/<framework>/main.py \
+        | grep -nE 'secret_ref|<removed_param>|read_model_auth_key'
+      ```
+
+      A parameter this PR stops declaring (or stops emitting from a fixture) must
+      already be consumed by that code, or the change is only correct after the
+      adapter ships.
+- [ ] Compare `config/providers/<framework>.yaml` with
+      `adapters/<framework>/provider.yaml` on the contrib default branch. The two
+      files are near-copies. A parameter eval-hub stops declaring while contrib
+      still declares it (or the reverse) is catalog drift: report it and say which
+      file a future sync would resurrect it from.
+- [ ] Classify how a contract mismatch fails, because that decides the severity:
+      the old adapter **rejects** the legacy input (loud, safe to ship ahead),
+      **ignores** it and falls back to the primary connection (silent credential
+      or endpoint substitution, High), or **accepts** it unchanged (no risk).
+      Quote the adapter line that proves the behaviour.
+- [ ] Check the failure is reachable from CI. A misroute that only affects a
+      benchmark excluded from the default `KIND_BENCHMARK_RUN` (`Makefile`, the
+      `KIND_BENCHMARK_RUN ?=` line) or from the default `FVT_TAGS` is untested.
+- [ ] Check whether the dependency can be pinned at all:
+      `grep -n 'image:' config/providers/*.yaml`. Floating `:latest` tags plus no
+      digest/version field mean "deploy together" is unenforceable and
+      unverifiable; say so and ask how the release is gated.
+- [ ] Check the PR text is accurate about direction and behaviour (merged vs
+      pending, reject vs ignore). A wrong claim about the adapter contract
+      misleads the release manager and the migration notes.
+
+Probes:
+
+```bash
+gh pr view <n> --json body --jq .body | grep -n -iE 'contrib|adapter image|deploy its images'
+gh api repos/eval-hub/eval-hub-contrib/pulls/<contrib-pr> --jq '{state, merged}'
+curl -s https://raw.githubusercontent.com/eval-hub/eval-hub-contrib/main/adapters/deepeval/main.py | grep -n 'eval_model_url'
+curl -s https://raw.githubusercontent.com/eval-hub/eval-hub-contrib/main/adapters/ragas/provider.yaml | grep -n 'name: judge_url'
+git grep -n 'image:' HEAD -- config/providers
 ```
 
