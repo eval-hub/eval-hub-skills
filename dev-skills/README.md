@@ -52,10 +52,12 @@ plugins for everyone:
 }
 ```
 
-Enabling is not downloading: the committed settings make the plugins active for
-the repository, but each collaborator still installs them once on their own
-machine (`--scope project`, as above), because the plugin files live in that
-machine's plugin cache.
+Enabling is not downloading: the plugin files live in each machine's plugin
+cache, so each collaborator installs them once (`--scope project`, as above).
+Claude Code also clones a declared marketplace and downloads its enabled plugins
+in the background once a session starts, so the explicit install matters when you
+want the skill immediately after cloning, when you are offline, or when you want
+to review what a plugin adds before it runs.
 
 ### Other harnesses
 
