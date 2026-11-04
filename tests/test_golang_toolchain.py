@@ -5,10 +5,7 @@ from pathlib import Path
 import pytest
 
 SCRIPTS_DIR = (
-    Path(__file__).resolve().parent.parent
-    / "dev-skills"
-    / "golang-toolchain-update"
-    / "scripts"
+    Path(__file__).resolve().parent.parent / "dev-skills" / "golang-toolchain-update" / "scripts"
 )
 
 
@@ -125,3 +122,33 @@ def test_no_cache_honours_current_and_legacy_flags(registry, monkeypatch):
     monkeypatch.delenv("GOLANG_CVE_UPDATE_NO_CACHE")
     monkeypatch.setenv("GOLANG_TOOLCHAIN_UPDATE_NO_CACHE", "1")
     assert registry._no_cache() is True
+
+
+def test_detect_image_ignores_commented_reference(registry, tmp_path):
+    (tmp_path / "Containerfile").write_text(
+        "# FROM registry.access.redhat.com/ubi9/go-toolset:1.26 AS old\n"
+        "FROM registry.access.redhat.com/ubi10/go-toolset:1.26 AS builder\n"
+    )
+    assert registry.detect_image(tmp_path) == "ubi10/go-toolset"
+
+
+def test_detect_image_falls_back_to_active_arg(registry, tmp_path):
+    (tmp_path / "Dockerfile").write_text(
+        "ARG BASE=registry.access.redhat.com/ubi9/go-toolset:1.26\nFROM ${BASE} AS builder\n"
+    )
+    assert registry.detect_image(tmp_path) == "ubi9/go-toolset"
+
+
+def test_filter_tags_includes_patches_for_major_minor_prefix(registry):
+    tags = ["1.26", "1.26-5", "1.26.4", "1.26.4-123", "1.27.0"]
+    assert registry.filter_tags(tags, prefix="1.26") == [
+        "1.26",
+        "1.26-5",
+        "1.26.4",
+        "1.26.4-123",
+    ]
+
+
+def test_filter_tags_keeps_exact_boundary_for_patch_prefix(registry):
+    tags = ["1.26.4", "1.26.4-123", "1.26.40", "1.26.45"]
+    assert registry.filter_tags(tags, prefix="1.26.4") == ["1.26.4", "1.26.4-123"]

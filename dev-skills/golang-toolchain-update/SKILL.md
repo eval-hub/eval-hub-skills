@@ -98,6 +98,21 @@ working outside `dev-skills`):
 scripts/scan-vulnerabilities.sh
 ```
 
+`govulncheck` analyses source with the Go toolchain on `PATH`, which may not be
+the builder image's Go — a newer host toolchain can miss stdlib findings that
+affect the shipped image. For gate-accurate results, run the scan inside the
+resolved toolset image (using `$IMAGE` from Step 1, for example
+`ubi10/go-toolset`, and its major.minor tag):
+
+```bash
+podman run --rm -v "$PWD:/src:Z" -w /src \
+  "registry.access.redhat.com/$IMAGE:$MAJOR_MINOR" \
+  go run golang.org/x/vuln/cmd/govulncheck@latest ./...
+```
+
+Scanning a binary built in that image with `-mode=binary` is an equivalent
+alternative.
+
 Skip this step in `latest` mode unless the user asked for a security check. From
 the output, capture:
 
@@ -114,8 +129,10 @@ the output, capture:
 - `latest` — take the newest patch of the current major.minor. Move to a newer
   major.minor only when the user asked for it; if they name a version that the
   image does not publish, report the gap and stop.
-- If the current pin already satisfies the target, report that no change is
-  needed and **stop**.
+- If the current pin already satisfies the target and there are no module
+  findings, report that no change is needed and **stop**.
+- If the current pin already satisfies the target but module findings remain,
+  skip Steps 5-6 (no Go pin changes) and continue at Step 7 to remediate them.
 
 Call the chosen version `TARGET_VERSION` and use it in the remaining steps.
 
@@ -123,12 +140,22 @@ Call the chosen version `TARGET_VERSION` and use it in the remaining steps.
 
 ```bash
 TAG=$(scripts/check-toolset-version.sh "$TARGET_VERSION")
+STATUS=$?
+if [ "$STATUS" -ne 0 ]; then
+  echo "toolset gate failed for $TARGET_VERSION (exit $STATUS)" >&2
+  scripts/list-toolset-tags.sh "$(echo "$TARGET_VERSION" | cut -d. -f1-2)" || true
+  exit "$STATUS"
+fi
 echo "Matched tag: $TAG"
 ```
 
-- exit `0` → tag exists (printed on stdout); keep it for Step 6
+- exit `0` → tag exists (printed on stdout); keep `$TAG` for Step 6
 - exit `1` → the image does not publish that version; **stop without editing**
 - exit `2` → invalid input or registry error; fix and retry
+
+Capture the status immediately after the check: printing the tag first, or piping
+the check into another command, masks a non-zero exit and lets the gate be
+skipped.
 
 On exit `1`, show the nearest available tags and stop:
 
@@ -147,7 +174,7 @@ Only after Step 5 passes.
 | --- | --- |
 | `go.mod` `go` directive | set to `TARGET_VERSION` |
 | `go.mod` `toolchain` | **active** line → update it; **commented** line → update the version but keep it commented; **absent** → do not add one |
-| `Containerfile` / `Dockerfile` | set the image tag: use the full `1.X.Y` when the repo pins patch tags, the major.minor alias when it pins `1.X`, and keep any build-ID suffix the repo already uses |
+| `Containerfile` / `Dockerfile` | set the image tag to the exact `TAG` returned by Step 5 when the repo pins build-ID tags; otherwise use the full `1.X.Y` when it pins patch tags, or the major.minor alias when it pins `1.X` |
 | CI workflows, `.go-version`, `.tool-versions`, `Makefile` | match `TARGET_VERSION`; leave `go-version-file: "go.mod"` lines alone — they follow `go.mod` automatically |
 | any other pin found in Step 1 | update it, or explain why it is intentionally unchanged |
 
@@ -166,6 +193,18 @@ grep -rn "go-toolset:\|GOTOOLCHAIN\|GOSECGOVERSION\|go-version" . \
   unrelated dependencies: it widens the diff and obscures the security fix.
 - `latest` mode — `go mod tidy`. Run `go get -t -u ./...` only when the user
   explicitly asks for a dependency refresh.
+
+Then confirm the dependency change did not move the Go toolchain past the gate.
+`go get` raises the `go` and `toolchain` directives when a module requires a newer
+Go:
+
+```bash
+git diff -- go.mod | grep -E '^[+-](go|toolchain) ' || true
+```
+
+If either directive changed, the dependency update introduced a Go version that
+has not passed Step 5. Either re-run Step 5 for the new `go` version (and Step 6 if
+it passes), or pin the module to a version compatible with the current Go.
 
 ### Step 8: Validate
 

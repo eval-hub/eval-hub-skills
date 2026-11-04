@@ -52,7 +52,7 @@ All scripts follow these invariants — keep them consistent:
 - **`get_client()` function**: each script defines its own `get_client()` that reads env vars directly
 - **JSON output to stdout**: all scripts print a single JSON value (object or array) to stdout
 - **Errors to stderr, exit 1**: error conditions print to stderr and exit with code 1
-- **`2>/dev/null` in SKILL.md**: all SKILL.md command examples include this suffix to hide SDK diagnostics
+- **`2>/dev/null` for SDK scripts**: every SKILL.md example that invokes a bundled EvalHub SDK script (`evalhub/scripts/*.py`) includes this suffix to hide SDK diagnostics. Do not add it to shell tools such as `git`, `gh`, or `podman`, where it would hide real errors.
 - **argparse**: all scripts use argparse for CLI args
 - **No inline SDK imports at module level**: `from evalhub import ...` goes inside functions to allow `get_client()` to resolve after uv installs deps
 

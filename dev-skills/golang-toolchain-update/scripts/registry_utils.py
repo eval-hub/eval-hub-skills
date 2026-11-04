@@ -12,6 +12,7 @@ import os
 import re
 import time
 import urllib.request
+from collections.abc import Iterator
 from pathlib import Path
 
 REGISTRY = "https://registry.access.redhat.com"
@@ -37,8 +38,22 @@ def normalize_image(image: str) -> str:
     return value
 
 
+def _active_instructions(text: str) -> Iterator[str]:
+    """Yield container file lines, skipping blank lines and comments."""
+    for raw in text.splitlines():
+        line = raw.strip()
+        if not line or line.startswith("#"):
+            continue
+        yield line
+
+
 def detect_image(root: str | Path = ".") -> str | None:
-    """Return the go-toolset image referenced by a container file in *root*."""
+    """Return the go-toolset image used by an active instruction in *root*.
+
+    Commented-out references are ignored. ``FROM`` instructions take precedence;
+    other active instructions are only used as a fallback, for example an ``ARG``
+    whose value is passed to ``FROM``.
+    """
     base = Path(root)
     candidates = [base / name for name in _CONTAINER_FILES]
     candidates += sorted(base.glob("Containerfile.*")) + sorted(base.glob("Dockerfile.*"))
@@ -49,9 +64,17 @@ def detect_image(root: str | Path = ".") -> str | None:
             text = path.read_text(encoding="utf-8", errors="replace")
         except OSError:
             continue
-        match = _IMAGE_IN_TEXT_RE.search(text)
-        if match:
-            return match.group(1)
+        fallback: str | None = None
+        for line in _active_instructions(text):
+            match = _IMAGE_IN_TEXT_RE.search(line)
+            if not match:
+                continue
+            if re.match(r"^FROM\b", line, re.IGNORECASE):
+                return match.group(1)
+            if fallback is None:
+                fallback = match.group(1)
+        if fallback:
+            return fallback
     return None
 
 
@@ -131,7 +154,15 @@ def fetch_all_tags(image: str | None = None, *, root: str | Path = ".") -> list[
 
 
 def version_pattern(version: str) -> re.Pattern[str]:
-    return re.compile(rf"^{re.escape(version)}($|-)")
+    """Match a version prefix, allowing patch tags for major/minor prefixes.
+
+    A one- or two-component prefix such as ``1.26`` also matches ``1.26.4`` and
+    ``1.26.4-123``. A full patch prefix such as ``1.26.4`` keeps the exact
+    boundary so ``1.26.45`` is not treated as a match.
+    """
+    components = version.count(".") + 1
+    boundary = r"($|[-.])" if components < 3 else r"($|-)"
+    return re.compile(rf"^{re.escape(version)}{boundary}")
 
 
 def filter_tags(tags: list[str], *, prefix: str | None = None) -> list[str]:
