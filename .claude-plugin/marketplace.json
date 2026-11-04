@@ -18,6 +18,30 @@
       "license": "Apache-2.0",
       "source": { "source": "github", "repo": "eval-hub/eval-hub-skills", "ref": "main" },
       "skills": ["./dev-skills/golang-toolchain-update"]
+    },
+    {
+      "name": "evalhub-bug-review",
+      "description": "Bug-focused review of an eval-hub pull request, branch, commit range, or working-tree change: returns a severity-ranked findings table with file:line locations and never edits code",
+      "version": "0.1.0",
+      "license": "Apache-2.0",
+      "source": { "source": "github", "repo": "eval-hub/eval-hub-skills", "ref": "main" },
+      "skills": ["./dev-skills/evalhub-bug-review"]
+    },
+    {
+      "name": "fix-fvt-test",
+      "description": "Diagnose a failing FVT (godog) scenario on an OpenShift AI cluster from the JUnit report, test log, and pod logs; produces a root-cause analysis and, when asked, a fix PR",
+      "version": "0.1.0",
+      "license": "Apache-2.0",
+      "source": { "source": "github", "repo": "eval-hub/eval-hub-skills", "ref": "main" },
+      "skills": ["./dev-skills/fix-fvt-test"]
+    },
+    {
+      "name": "release-notes",
+      "description": "Draft OpenSSF-compliant, human-readable GitHub release notes for a tag or version, summarizing major changes and upgrade impact",
+      "version": "0.1.0",
+      "license": "Apache-2.0",
+      "source": { "source": "github", "repo": "eval-hub/eval-hub-skills", "ref": "main" },
+      "skills": ["./dev-skills/release-notes"]
     }
   ]
 }

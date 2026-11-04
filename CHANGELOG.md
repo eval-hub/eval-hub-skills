@@ -15,11 +15,13 @@
 - Makefile targets: `install-all`, `uninstall-all`, `update-all`
 - skillsaw added to `make lint`
 - `dev-skills/golang-toolchain-update` — CVE-aware Go toolchain update with go-toolset image auto-detection (`ubi9`/`ubi10`), `cve` and `latest` modes, and unit tests
+- `evalhub-bug-review`, `fix-fvt-test`, and `release-notes` published as opt-in marketplace plugins, joining `golang-toolchain-update`, so every `dev-skills/` skill can be installed with `/plugin install <skill>@evalhub`
 
 ### Changed
 - `settings.local.json` simplified (permissions moved to committed `settings.json`)
 - `golang-cve-update` renamed to `golang-toolchain-update`: the go-toolset image is resolved from the target repository (or `--image` / `GO_TOOLSET_IMAGE`) instead of being hardcoded to `ubi9`, and a `latest` mode was added. The marketplace plugin name changed accordingly, so existing plugin installs must be reinstalled
 - `make lint`, CI, and pre-commit now cover `dev-skills/`
+- `dev-skills/README.md` and the README development-skills section now document the plugin install path (plus project-level `extraKnownMarketplaces` / `enabledPlugins`) instead of describing dev skills as unpublished
 
 ### Removed
 - `golang-version-update` skill and its `fetch-go-toolset-tags.sh` script (merged into `golang-toolchain-update`)
