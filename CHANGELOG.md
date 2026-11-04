@@ -14,9 +14,15 @@
 - `eval/` directory with 10 evaluation scenarios (input + expected pairs)
 - Makefile targets: `install-all`, `uninstall-all`, `update-all`
 - skillsaw added to `make lint`
+- `dev-skills/golang-toolchain-update` — CVE-aware Go toolchain update with go-toolset image auto-detection (`ubi9`/`ubi10`), `cve` and `latest` modes, and unit tests
 
 ### Changed
 - `settings.local.json` simplified (permissions moved to committed `settings.json`)
+- `golang-cve-update` renamed to `golang-toolchain-update`: the go-toolset image is resolved from the target repository (or `--image` / `GO_TOOLSET_IMAGE`) instead of being hardcoded to `ubi9`, and a `latest` mode was added. The marketplace plugin name changed accordingly, so existing plugin installs must be reinstalled
+- `make lint`, CI, and pre-commit now cover `dev-skills/`
+
+### Removed
+- `golang-version-update` skill and its `fetch-go-toolset-tags.sh` script (merged into `golang-toolchain-update`)
 
 ## [0.1.0] — initial release
 

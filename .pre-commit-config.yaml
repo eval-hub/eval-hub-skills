@@ -4,9 +4,9 @@ repos:
     hooks:
       - id: ruff
         args: [--fix]
-        files: ^evalhub/scripts/
+        files: ^(evalhub/scripts/|dev-skills/[^/]+/scripts/)
       - id: ruff-format
-        files: ^evalhub/scripts/
+        files: ^(evalhub/scripts/|dev-skills/[^/]+/scripts/)
 
   - repo: https://github.com/shellcheck-py/shellcheck-py
     rev: v0.10.0.1
@@ -18,7 +18,7 @@ repos:
       - id: skillsaw
         name: skillsaw
         language: system
-        entry: bash -c 'set -e; for d in evalhub evalhub-discovery evalhub-eval evalhub-jobs; do (cd "$d" && uvx skillsaw lint SKILL.md); done'
+        entry: bash -c 'set -e; for d in evalhub evalhub-discovery evalhub-eval evalhub-jobs dev-skills/*/; do (cd "$d" && uvx skillsaw lint SKILL.md); done'
         pass_filenames: false
 
       - id: pytest

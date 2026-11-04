@@ -18,9 +18,9 @@ jobs:
       - name: Install ruff
         run: pip install ruff
       - name: Check style
-        run: ruff check evalhub/scripts/
+        run: ruff check evalhub/scripts/ dev-skills/*/scripts/
       - name: Check formatting
-        run: ruff format --check evalhub/scripts/
+        run: ruff format --check evalhub/scripts/ dev-skills/*/scripts/
 
   skills:
     name: Skills (skillsaw)
@@ -34,6 +34,6 @@ jobs:
         run: pip install skillsaw
       - name: Lint SKILL.md files
         run: |
-          for d in evalhub evalhub-discovery evalhub-eval evalhub-jobs; do
+          for d in evalhub evalhub-discovery evalhub-eval evalhub-jobs dev-skills/*/; do
             (cd "$d" && skillsaw lint SKILL.md)
           done

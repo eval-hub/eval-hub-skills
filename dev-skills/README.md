@@ -10,8 +10,7 @@ they follow the same [agentskills.io](https://agentskills.io) `SKILL.md` format.
 | ----- | ----------- |
 | `evalhub-bug-review` | Reviewing an eval-hub pull request, branch, commit range, or working-tree change for bugs. Produces a severity-ranked findings table and never edits code. |
 | `fix-fvt-test` | Diagnosing and fixing a failing FVT (godog) scenario on an OpenShift AI cluster, from the JUnit report, test log, and pod logs. |
-| `golang-cve-update` | Scanning a Go repository for CVEs and bumping Go only when `ubi9/go-toolset` publishes the required tag. |
-| `golang-version-update` | Bumping the Go toolchain in `eval-hub` to the latest tag available in `ubi10/go-toolset`. |
+| `golang-toolchain-update` | Auditing a Go repository for CVEs and updating Go only when the target repository's go-toolset image (`ubi9`/`ubi10`) publishes the required tag. Two modes: minimal CVE remediation and latest-available upgrade. |
 | `release-notes` | Drafting OpenSSF-compliant, human-readable GitHub release notes for a tag or version. |
 
 ## Using a dev skill
@@ -48,9 +47,16 @@ from its own directory:
 cd dev-skills/evalhub-bug-review && uvx skillsaw lint SKILL.md
 ```
 
-## Overlap to resolve
+## Go toolchain modes
 
-`golang-cve-update` and `golang-version-update` cover adjacent ground: the former
-is a CVE-first, `ubi9/go-toolset`-gated workflow with helper scripts, while the
-latter is the eval-hub-specific `ubi10/go-toolset` bump procedure. Consolidating
-them into one Go toolchain skill is a follow-up, not part of the move.
+`golang-toolchain-update` replaces the earlier `golang-cve-update` and
+`golang-version-update` skills, which duplicated the same go-toolset gate with
+different images (`ubi9` vs `ubi10`). It resolves the image from the target
+repository's container file, so one skill covers both the `ubi9` and `ubi10`
+worlds:
+
+- `cve` mode — minimal Go bump driven by `govulncheck` findings
+- `latest` mode — newest available patch, or a requested major.minor
+
+Override the image with `--image ubiX/go-toolset` or `GO_TOOLSET_IMAGE` when a
+repository builds on an image that is not referenced in its container file.
