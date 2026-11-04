@@ -278,8 +278,10 @@ Each one is published as its own opt-in marketplace plugin, so installing
 
 Projects can enable the whole set for everyone by committing a
 `.claude/settings.json` with `extraKnownMarketplaces` and `enabledPlugins`. That
-enables but does not download them, so each collaborator still installs the
-plugins once with `--scope project`; see
+enables them for the repository; Claude Code also clones the declared marketplace
+and downloads enabled plugins in the background after a session starts, and each
+collaborator can install them explicitly with `--scope project` when they want
+them immediately or offline. See
 [`dev-skills/README.md`](dev-skills/README.md#using-a-dev-skill) for both steps.
 
 ### golang-toolchain-update
