@@ -192,11 +192,25 @@ bundles its own export-data importer, which only decodes standard-library data u
 to the Go release it shipped with. A pin that lags `TARGET_VERSION` does not fail
 at install time; it fails `make lint` with `cannot decode "internal/goarch",
 export data version N is greater than maximum supported version M`, which reads
-like a pre-existing failure rather than a missing bump. Compare the release's
-bundled `golang.org/x/tools` version (or the `go` directive in its `go.mod`)
-against the target, and state the chosen pin plus the oldest release that works in
-the PR, so the next bump knows the floor. For reference, Go 1.27 needs `v2.14.0`
-or newer.
+like a pre-existing failure rather than a missing bump.
+
+Do not infer support from release metadata: the `go` directive in a release's
+`go.mod` is only the minimum toolchain that can build it, and its bundled
+`golang.org/x/tools` version says nothing about which export-data versions the
+binary decodes. Check the binary and the release notes instead:
+
+1. Run `golangci-lint version` on the pin you and CI will actually run (for
+   `golangci-lint-action`, the binary the workflow installs). It prints
+   `built with goX.Y.Z`, and golangci-lint documents support only for Go versions
+   lower than or equal to the version used to compile it — so require
+   `goX.Y.Z` >= `TARGET_VERSION`.
+2. Read the release notes/changelog for the candidate and the releases in
+   between: a newer Go release is not automatically supported, because linters
+   and internal pieces may need updating even when the build Go version is new
+   enough.
+
+State the chosen pin and the oldest release that passes both checks in the PR, so
+the next bump knows the floor. For reference, Go 1.27 needs `v2.14.0` or newer.
 
 ### Step 7: Handle dependencies
 
