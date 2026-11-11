@@ -176,15 +176,41 @@ Only after Step 5 passes.
 | `go.mod` `toolchain` | **active** line → update it; **commented** line → update the version but keep it commented; **absent** → do not add one |
 | `Containerfile` / `Dockerfile` | set the image tag to the exact `TAG` returned by Step 5 when the repo pins build-ID tags; otherwise use the full `1.X.Y` when it pins patch tags, or the major.minor alias when it pins `1.X` |
 | CI workflows, `.go-version`, `.tool-versions`, `Makefile` | match `TARGET_VERSION`; leave `go-version-file: "go.mod"` lines alone — they follow `go.mod` automatically |
+| `golangci-lint` pin — `GOLANGCI_LINT_VERSION` in the `Makefile`, `version` in `.github/workflows/golangci-lint.yml` | bump both in the same PR to a release that can type-check `TARGET_VERSION` (see the export-data note below) |
 | any other pin found in Step 1 | update it, or explain why it is intentionally unchanged |
 
 Sweep for stragglers before reporting:
 
 ```bash
-grep -rn "go-toolset:\|GOTOOLCHAIN\|GOSECGOVERSION\|go-version" . \
+grep -rn "go-toolset:\|GOTOOLCHAIN\|GOSECGOVERSION\|GOLANGCI_LINT_VERSION\|golangci-lint\|go-version" . \
   --include='*.yml' --include='*.yaml' --include='*.json' --include='*.md' \
   --include='*.sh' --include='Makefile' --include='Containerfile' --include='Dockerfile'
 ```
+
+The linter pin is the straggler this sweep finds most often. `golangci-lint`
+bundles its own export-data importer, which only decodes standard-library data up
+to the Go release it shipped with. A pin that lags `TARGET_VERSION` does not fail
+at install time; it fails `make lint` with `cannot decode "internal/goarch",
+export data version N is greater than maximum supported version M`, which reads
+like a pre-existing failure rather than a missing bump.
+
+Do not infer support from release metadata: the `go` directive in a release's
+`go.mod` is only the minimum toolchain that can build it, and its bundled
+`golang.org/x/tools` version says nothing about which export-data versions the
+binary decodes. Check the binary and the release notes instead:
+
+1. Run `golangci-lint version` on the pin you and CI will actually run (for
+   `golangci-lint-action`, the binary the workflow installs). It prints
+   `built with goX.Y.Z`, and golangci-lint documents support only for Go versions
+   lower than or equal to the version used to compile it — so require
+   `goX.Y.Z` >= `TARGET_VERSION`.
+2. Read the release notes/changelog for the candidate and the releases in
+   between: a newer Go release is not automatically supported, because linters
+   and internal pieces may need updating even when the build Go version is new
+   enough.
+
+State the chosen pin and the oldest release that passes both checks in the PR, so
+the next bump knows the floor. For reference, Go 1.27 needs `v2.14.0` or newer.
 
 ### Step 7: Handle dependencies
 

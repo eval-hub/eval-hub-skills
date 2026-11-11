@@ -125,9 +125,9 @@ The eval-hub repository adds these specifics on top of the generic workflow:
 | Item | Value |
 | --- | --- |
 | Toolset image | `registry.access.redhat.com/ubi10/go-toolset`, pinned to the major.minor tag in `Containerfile` (builder stage) |
-| `go.mod` | `go 1.26.10` (patch version) |
+| `go.mod` | the `go` directive carries a patch version (currently `go 1.27.3`) |
 | CI pins | `.github/workflows/ci.yml` sets `GOTOOLCHAIN: go1.XX.Y` and `GOSECGOVERSION: go1.XX.Y` |
-| Lint | `make fmt lint` (`go fmt`, `go vet`, `golangci-lint`) |
+| Lint | `make fmt lint` (`go fmt`, `go vet`, `golangci-lint`); the linter is pinned by `GOLANGCI_LINT_VERSION` in `Makefile` and `version` in `.github/workflows/golangci-lint.yml`, and both must move with `go.mod` — Go 1.27 needs `v2.14.0` or newer |
 | Tests | `make test` (unit tests plus a short fuzz pass) |
 
 The policy that the Go version must exist in `go-toolset` before `go.mod` is
