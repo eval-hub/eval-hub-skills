@@ -6,8 +6,8 @@ description: >
   storage, runtimes, sidecar, MCP server, and OpenAPI conventions, then returns a
   severity-ranked findings table with file:line locations. It finds defects only
   and never edits code. Use when reviewing an eval-hub PR, doing a pre-merge
-  review, or when the user asks for a "bug review", "review this PR",
-  "/review-bugbot", or a second pair of eyes on a change.
+  review, or when the user asks for a "bug review", "review this PR", or a
+  second pair of eyes on a change.
 allowed-tools:
   - Bash
   - Read
@@ -115,10 +115,11 @@ introduced it — pre-existing bugs once, labelled "pre-existing, not introduced
 here". Verify read-only where cheap:
 
 ```bash
-make fmt                  # no-op on a clean branch
+gofmt -l .                # lists unformatted files; make fmt would rewrite them
 make lint && go build ./...
 go test ./internal/eval_hub/<pkg>/... -run '<TestName>' -count=1
 make verify-api-docs      # only when docs/src/openapi.yaml changed
+git diff --stat           # must be unchanged by the review
 ```
 
 Never let a tool mutate the working tree unasked. Mark each finding **confirmed**
