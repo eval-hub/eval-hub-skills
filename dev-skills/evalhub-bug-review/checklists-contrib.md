@@ -396,9 +396,16 @@ Probes:
 gh pr view <n> --json body --jq .body | grep -n -iE 'eval-hub PR|contrib|catalog|sidecar'
 gh api repos/eval-hub/eval-hub/pulls/<evalhub-pr> --jq '{state, merged}'
 # fetch the other half of the contract; -fsSL keeps a 404/moved file separate
-# from a grep no-match
-curl -fsSL "https://raw.githubusercontent.com/eval-hub/eval-hub/main/config/providers/<name>.yaml" \
-  | head -30 || echo 'FETCH FAILED: contract unverified, not drift'
+# from a grep no-match. Write to a file and only inspect it after curl succeeds,
+# so head cannot mask a fetch failure.
+tmp=$(mktemp)
+if curl -fsSL -o "$tmp" \
+  "https://raw.githubusercontent.com/eval-hub/eval-hub/main/config/providers/<name>.yaml"; then
+  head -n 30 "$tmp"
+else
+  echo 'FETCH FAILED: contract unverified, not drift' >&2
+fi
+rm -f "$tmp"
 git grep -n 'image:' -- 'adapters/*/provider.yaml'
 git grep -n 'provider_id' -- collections
 ```
@@ -408,10 +415,18 @@ git grep -n 'provider_id' -- collections
 Run these once per review; they surface most recurring adapter defects.
 
 ```bash
-mb=$(git merge-base "origin/$(gh repo view --json defaultBranchRef --jq '.defaultBranchRef.name')" HEAD)
+# <base> is the base branch Step 1 resolved (the PR's baseRefName, or the
+# repository's default branch). A working-tree target also includes staged and
+# unstaged changes, so an adapter that is not in HEAD yet is still in scope.
+mb=$(git merge-base "origin/<base>" HEAD)
 git diff --stat "$mb"...HEAD
+git diff --stat --cached "$mb"    # staged changes (working-tree target)
+git diff --stat                   # unstaged changes (working-tree target)
 # which adapters are in scope
-git diff --name-only "$mb"...HEAD | grep '^adapters/' | cut -d/ -f2 | sort -u
+{ git diff --name-only "$mb"...HEAD
+  git diff --name-only --cached "$mb"
+  git diff --name-only
+} | grep '^adapters/' | cut -d/ -f2 | sort -u
 # catalog drift overview
 uv run --quiet --with pyyaml python - <<'PY'
 import pathlib, yaml

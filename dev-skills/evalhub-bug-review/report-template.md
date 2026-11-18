@@ -6,21 +6,21 @@ table, pick a row, and see the justification in `Details`.
 
 ## 1. Summary line
 
+Whenever findings are reported, the summary must name both the repository under
+review and the checklist range you ran:
+
 ```text
-Found 3 bugs in 7 changed files (Critical: 1, High: 1, Medium: 1, Low: 0)
+eval-hub (checklists.md §1–§12) — Found 3 bugs in 7 changed files (Critical: 1, High: 1, Medium: 1, Low: 0)
 ```
 
-Name the repository when the review is not obviously scoped, and the checklist
-range you ran:
-
 ```text
-eval-hub-contrib — Found 3 bugs in 7 changed files (Critical: 0, High: 2, Medium: 1, Low: 0)
+eval-hub-contrib (checklists-contrib.md §13–§22) — Found 3 bugs in 7 changed files (Critical: 0, High: 2, Medium: 1, Low: 0)
 ```
 
-No findings:
+No findings (the repository and range still say what was reviewed):
 
 ```text
-No bugs found in this diff (7 files reviewed).
+eval-hub-contrib (checklists-contrib.md §13–§22) — No bugs found in this diff (7 files reviewed).
 ```
 
 Empty diff:
@@ -31,12 +31,30 @@ No diff to review — the branch matches origin/main (0 changed files).
 
 ## 2. Findings table
 
-Exactly three columns, highest severity first. One row per finding.
+Exactly three columns, highest severity first. One row per finding. Keep each
+example self-contained: its summary line, table and `Details` blocks must agree
+on the finding count, severities and coverage. Do not mix Go and contrib rows in
+one example.
+
+**eval-hub (Go) example** — one Critical, one High, one Medium:
 
 ```markdown
+eval-hub (checklists.md §1–§12) — Found 3 bugs in 7 changed files (Critical: 1, High: 1, Medium: 1, Low: 0)
+
 | Severity | Location (file:line) | Finding |
 |----------|----------------------|---------|
 | Critical | internal/eval_hub/handlers/evaluations.go:612 | List query bypasses `h.getStorage(ctx)` and reads `h.storage` directly, so `total_count` is computed across all tenants. |
+| High | internal/eval_hub/handlers/evaluations.go:488 | The job is marked `RUNNING` before the runtime create call, so a create failure leaves a job no pod will ever update. |
+| Medium | internal/eval_hub/handlers/evaluations.go:530 | The count query runs before the filter is applied, so `total_count` can exceed the number of rows returned. |
+```
+
+**eval-hub-contrib (Python) example** — two High, one Medium, no Go rows:
+
+```markdown
+eval-hub-contrib (checklists-contrib.md §13–§22) — Found 3 bugs in 7 changed files (Critical: 0, High: 2, Medium: 1, Low: 0)
+
+| Severity | Location (file:line) | Finding |
+|----------|----------------------|---------|
 | High | adapters/lighteval/main.py:245 | `create_oci_artifact` is called with `files_path=output_files[0].parent`, so per-task result files written to sibling directories are never uploaded. |
 | High | adapters/mteb/provider.yaml:34 | `benchmarks[].id: mteb_summarization` is declared but `BENCHMARK_PRESETS` has no such key, so selecting the advertised benchmark fails the job at `INITIALIZING`. |
 | Medium | adapters/lighteval/main.py:250 | The `else` branch reports "No OCI exports configured" even when exports *are* configured but `output_files` is empty, so a real upload miss looks like an intentional skip. |
@@ -84,7 +102,10 @@ Rate every row with this rubric; the label is what makes two reviews comparable.
 ## 3. Details
 
 One block per finding, same order as the table, labelled with the severity and
-location. Include the snippet, the trigger, and a suggested direction.
+location. Include the snippet, the trigger, and a suggested direction. Each
+example's blocks match its table rows exactly.
+
+**eval-hub (Go) example** — blocks 1–3 for the Go table above:
 
 ````markdown
 ### 1. Critical — internal/eval_hub/handlers/evaluations.go:612
@@ -104,11 +125,70 @@ Status: confirmed (read path, no other scoping layer).
 Direction: build storage through `h.getStorage(ctx)` before the list/count calls.
 ````
 
+````markdown
+### 2. High — internal/eval_hub/handlers/evaluations.go:488
+
+```go
+if err := h.markRunning(ctx, job.ID); err != nil {
+    return err
+}
+if _, err := h.runtimes.Create(ctx, job); err != nil {
+    return err
+}
+```
+
+`markRunning` commits `RUNNING` before `runtimes.Create`. If the create call
+fails, the handler returns the error without reporting `FAILED`, so the job stays
+`RUNNING` with no pod and no path back to a terminal state.
+
+Trigger: a runtime create error (quota exhausted, rejected pod spec).
+
+Status: confirmed (error path returns before any status update).
+Direction: create the runtime before transitioning, or report `FAILED` before
+returning.
+````
+
+````markdown
+### 3. Medium — internal/eval_hub/handlers/evaluations.go:530
+
+```go
+total, err := h.storage.CountEvaluationJobs(ctx)
+jobs, err := h.storage.ListEvaluationJobs(ctx, filter, limit, offset)
+```
+
+The count ignores `filter`, so `total_count` includes jobs the list excludes and
+pagination advertises pages that return no rows.
+
+Trigger: `GET /api/v1/evaluations/jobs` with a filter that excludes some jobs.
+
+Status: confirmed.
+Direction: pass the same filter to the count query.
+````
+
 Status is `confirmed` (provable from code or reproduced) or `suspected` (needs a
 cluster, MLflow, network or race condition). Never present `suspected` as
 certain.
 
-A contrib detail block has the same shape, with the adapter's own vocabulary:
+**eval-hub-contrib (Python) example** — blocks 1–3 for the contrib table above,
+with the adapter's own vocabulary:
+
+````markdown
+### 1. High — adapters/lighteval/main.py:245
+
+```python
+artifact = create_oci_artifact(OCIArtifactSpec(files_path=output_files[0].parent))
+```
+
+Only the first output file's directory is uploaded. Per-task result files written
+to sibling directories are never included, so the artifact is incomplete for any
+job that splits output by task.
+
+Trigger: a job with `exports.oci` set and more than one output directory.
+
+Status: confirmed.
+Direction: stage every referenced file under one directory, or use the job output
+root.
+````
 
 ````markdown
 ### 2. High — adapters/mteb/provider.yaml:34
@@ -130,6 +210,24 @@ Direction: add the preset in `main.py` or drop it from the catalog — and add a
 asserting every `benchmarks[].id` resolves.
 ````
 
+````markdown
+### 3. Medium — adapters/lighteval/main.py:250
+
+```python
+else:
+    logger.info("No OCI exports configured")
+```
+
+The `else` branch runs whenever `output_files` is empty, including when
+`config.exports.oci` is set but the framework wrote nothing. A real upload miss is
+then logged as an intentional skip.
+
+Trigger: `exports.oci` configured and the framework exits with no output files.
+
+Status: confirmed.
+Direction: gate the message on `config.exports.oci`, not on `output_files`.
+````
+
 ## 4. Coverage
 
 ```markdown
@@ -139,13 +237,16 @@ question: is the `total_count` change intentional for system-scope callers?
 ```
 
 ```markdown
-**Coverage:** eval-hub-contrib — reviewed `adapters/deepeval/main.py`,
-`provider.yaml`, `tests/test_adapter.py` and the README tables. Ran the adapter
-suite offline (`pytest tests/ -m "not local"`, 96 passed); did not run the
-`local`-marked tests, build the image, or exercise a real DeepEval endpoint.
-Checked the eval-hub side of the catalog: no matching provider file in
-`config/providers/`, so no cross-repo dependency. Pre-existing, not introduced
-here: `adapters/guidellm/` still has no `provider.yaml`.
+**Coverage:** eval-hub-contrib — reviewed `adapters/lighteval/main.py`,
+`provider.yaml`, `tests/test_adapter.py` and the README tables, plus
+`adapters/mteb/provider.yaml` and its presets. Ran the adapter suite offline
+(`pytest tests/ -m "not local"`, 96 passed); did not run the `local`-marked
+tests, build the image, or exercise a real LightEval endpoint. Checked the
+eval-hub side of the catalog: no matching provider filename in
+`config/providers/`, and no references to the provider ID in
+`config/collections/` or the FVT benchmark fixtures, so no cross-repo dependency
+was found. Pre-existing, not introduced here: `adapters/guidellm/` still has no
+`provider.yaml`.
 ```
 
 State honestly what was reviewed and what was not. Reviewers use this to decide
