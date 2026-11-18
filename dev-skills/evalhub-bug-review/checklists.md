@@ -7,6 +7,13 @@ Each item is phrased as **what to look for** and includes the eval-hub code that
 defines correct behavior. Cite the file you checked in the report's `Coverage`
 section so the PR author knows what was and was not covered.
 
+> **Scope:** §1–§12 apply to `eval-hub/eval-hub` (the Go service) only. For a
+> diff in `eval-hub/eval-hub-contrib` (Python `FrameworkAdapter` packages,
+> `provider.yaml`, collections, Containerfiles), use
+> [checklists-contrib.md](checklists-contrib.md) §13–§22 instead. Commands below
+> such as `gofmt`, `make lint` and `make verify-api-docs` do not exist in
+> contrib.
+
 Where a probe uses `origin/main`, substitute the repository's default branch
 (`gh repo view --json defaultBranchRef --jq '.defaultBranchRef.name'`) if it
 differs.
@@ -397,6 +404,9 @@ encode the adapter contract, so a PR touching them can depend on an unmerged or
 unreleased adapter change. The dependency is usually stated in prose in the PR
 body, for example "deploy its images together with these catalog changes" or "the
 related adapter changes are in contrib PR #263".
+
+The reverse direction — a contrib adapter change that needs a catalog change
+here — is [checklists-contrib.md](checklists-contrib.md) §20.
 
 Treat that sentence as a **review target, not as context**. A deploy-order note
 is the author telling you the change is not self-contained.
