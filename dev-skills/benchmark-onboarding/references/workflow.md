@@ -167,7 +167,22 @@ For failures, separate benchmark defects from missing credentials, missing
 offline fixtures, model endpoint problems, and test infrastructure failures;
 state the evidence and confidence for each cause.
 
-Include the Markdown report in the contrib PR body. Link the same report and
-contrib PR from the eval-hub PR. If a repository has no required change, do not
-open a duplicate PR; explain that in the report. Never include bearer tokens,
-model keys, Hugging Face tokens, or Secret contents.
+Add the full QA report under the contrib PR template's testing section. Wrap
+it in a GitHub Markdown disclosure block, with blank lines around the report
+so its headings, tables, and lists render inside the block.
+
+```markdown
+<details>
+<summary>Expand the benchmark QA report</summary>
+
+<!-- Replace this comment with the completed Markdown report. -->
+
+</details>
+```
+
+Keep the full report in the PR body even if a copy exists in the repository.
+After publishing, check that the contrib PR description contains the
+collapsible report. Cross-link the contrib and eval-hub PRs so reviewers can
+find the report from either repository. If a repository has no required
+change, explain that in the report and skip opening a PR for it. Keep bearer
+tokens, model keys, Hugging Face tokens, and Secret contents out of the report.

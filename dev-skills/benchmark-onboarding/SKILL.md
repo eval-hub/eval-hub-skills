@@ -51,8 +51,10 @@ writes a Markdown QA report, and opens the required PRs. Never merge a PR.
    terminal API and Kubernetes states.
 6. Write the report using [report-template.md](references/report-template.md).
    Analyze each failure from API, init-container, adapter, sidecar, and cluster
-   evidence. Include the report in the contrib PR description and cross-link the
-   related eval-hub PR. Follow each repository's commit and PR conventions.
+   evidence. Embed the full report in a collapsible section in each contrib PR
+   description using the wrapper in [workflow.md](references/workflow.md#reporting-and-prs).
+   Cross-link the related eval-hub PR. Follow each repository's commit and PR
+   conventions.
 
 ## Working rules
 
