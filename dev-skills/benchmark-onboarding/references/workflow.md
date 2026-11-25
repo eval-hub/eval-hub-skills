@@ -23,6 +23,30 @@ exposed through distinct providers (for example, the native
 provider the user intends to add; do not assume one provider's registration
 updates the other.
 
+## Cluster test resource preflight
+
+Before submitting a job, derive its dependencies from the request fixture,
+provider runtime, test-data reference, init containers, and model endpoint. In
+the target namespace, check for the referenced model-auth Secret, disconnected
+dataset-source Secret, registry pull Secret when required, PVC, ConfigMaps,
+and in-cluster model/service endpoints. Check resource names and metadata only;
+never dump Secret data. A Secret referenced by the job must exist in the job's
+namespace and contain the keys required by the runtime.
+
+Create missing PVCs using a storage class available on the cluster and enough
+capacity for the dataset, tokenizer, cache, and temporary writable copy. Wait
+for the claim to bind, stage the exact assets, and verify expected paths and
+file counts before the API request. Create missing namespace-scoped Secret
+references from credentials already supplied by the user or an approved
+credential source. If credentials, storage capacity, or a required endpoint are
+unavailable, stop before submitting the evaluation and report the specific
+dependency; do not invent credentials or use a placeholder Secret.
+
+Record which test resources were created and their namespaces. Remove temporary
+PVCs, staging Jobs, ConfigMaps, and test-only providers after preserving the
+report. Keep a fixture in the shared test bucket only when the repository's
+disconnected FVTs depend on that exact prefix.
+
 If the task is already present, compare its metadata and tests against the
 source. Reuse existing coverage and report any gap. Add only missing or incorrect
 pieces. Do not create a benchmark PR merely to attach a report when no code or
@@ -81,8 +105,35 @@ limit is honored.
 For disconnected runs, stage the exact dataset cache and tokenizer at the
 fixture location expected by the adapter. Ensure the evaluation job is subject
 to the disconnected or egress-restricted path while the administrative staging
-step can access its source. A physical disconnected cluster needs pre-staged
-assets; an `hf_offline` flag without local assets does not prove offline support.
+step can access its source. Prefer a pre-staged PVC when the evaluation pod must
+have no public egress; an S3 or remote fixture source must be explicitly
+allowlisted for the init container and is shared with every container in the
+pod. A physical disconnected cluster needs pre-staged assets; an `hf_offline`
+flag without local assets does not prove offline support.
+
+Before the evaluation Job is created, install an egress allowlist scoped to the
+test provider or unique benchmark pod labels. Permit cluster DNS and only the
+configured model, EvalHub callback, MLflow, OCI, and fixture endpoints the run
+needs. If those services are external, use a stable approved CIDR or the
+cluster's FQDN-aware egress gateway; standard NetworkPolicy does not select a
+Service by DNS name. Keep Hugging Face and general Internet destinations out of
+the allowlist. Inspect the generated pod labels and policy selection before
+submitting the API request, then verify the policy is effective while the job
+runs. Inspect the pod's resolver configuration and the cluster DNS Service
+target ports; the CNI may evaluate DNS egress against the Service IP, the DNS
+pods, or a translated target port. Allow the working in-cluster DNS path only.
+The sidecar proxy URL should be local to the pod, and the `lm_eval`
+subprocess should have Hugging Face Hub, datasets, and Transformers offline
+flags enabled when using staged assets.
+
+NetworkPolicy applies to the pod as a whole, and all its containers share a
+network namespace. Therefore it can block unapproved Internet/Hugging Face
+traffic and permit the sidecar's configured destinations, but it cannot prove
+that the adapter process itself is unable to connect directly to those same
+allowed destinations. State this limitation in the report. If a user requires
+sidecar-only external access, stop before claiming that guarantee and discuss a
+separate-pod proxy, service-mesh, or CNI-specific enforcement design.
+
 If an init container fails before the adapter starts, capture its logs and
 Kubernetes Job state because the EvalHub API may not receive a terminal event.
 
@@ -99,6 +150,13 @@ local Podman host produced a different architecture. Use a unique test image
 tag, verify its digest, deploy through the established test workflow, and
 record the actual image running in the evaluation pod. Do not overwrite shared
 `latest` or production tags.
+
+For a successful disconnected case, record both application-level offline
+flags and network-policy evidence. A blocked Hugging Face probe from the pod
+proves that the pod cannot reach that destination; it does not prove which
+container attempted a connection. Do not report container-specific network
+isolation unless the cluster provides and the test verifies a per-container
+enforcement mechanism.
 
 ## Reporting and PRs
 

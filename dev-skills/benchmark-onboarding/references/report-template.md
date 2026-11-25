@@ -23,6 +23,12 @@ when the evaluation job did not reach `completed`.
 | EvalHub branch / commit | `<branch and SHA, or N/A>` |
 | Image | `<reference, platform, digest>` |
 
+## Cluster resources provisioned
+
+| Namespace | Resource | Purpose / source | Cleanup |
+| --- | --- | --- | --- |
+| `<namespace>` | `<PVC, Secret reference, ConfigMap, service, or N/A>` | `<purpose; never include Secret data>` | `<removed, retained shared fixture, or N/A>` |
+
 ## Scenario results
 
 | Scenario / annotation | Mode | Parameters exercised | API / job result | Evidence |
@@ -32,6 +38,16 @@ when the evaluation job did not reach `completed`.
 
 List the parameter-coverage matrix or link to it. Note values that are
 unsupported and why.
+
+### Egress controls
+
+| Item | Evidence |
+| --- | --- |
+| Policy selector and enforcement scope | `<labels; pod-scoped or stronger mechanism>` |
+| Allowed destinations | `<DNS, model, EvalHub, MLflow, OCI, fixture endpoints actually configured>` |
+| Hugging Face / general Internet | `<blocked probe or other evidence>` |
+| Adapter offline flags | `<flags and runtime evidence>` |
+| Boundary | `<state whether allowed sidecar destinations are also reachable by the adapter>` |
 
 ## Failure analysis
 
