@@ -10,7 +10,7 @@ so installing `evalhub` does not install them for end users.
 | Skill | Plugin | Use it when |
 | ----- | ------ | ----------- |
 | `evalhub-bug-review` | `evalhub-bug-review@evalhub` | Reviewing an eval-hub or eval-hub-contrib pull request, branch, commit range, or working-tree change for bugs. Produces a severity-ranked findings table and never edits code. |
-| `benchmark-onboarding` | `benchmark-onboarding@evalhub` | Onboarding a benchmark from upstream task links through catalog changes, connected/disconnected API tests, image validation, a QA report, and PRs. |
+| [`benchmark-onboarding`](#benchmark-onboarding) | `benchmark-onboarding@evalhub` | Onboarding a benchmark from upstream task links through catalog changes, connected/disconnected API tests, image validation, a QA report, and PRs. |
 | `fix-fvt-test` | `fix-fvt-test@evalhub` | Diagnosing and fixing a failing FVT (godog) scenario on an OpenShift AI cluster, from the JUnit report, test log, and pod logs. |
 | `golang-toolchain-update` | `golang-toolchain-update@evalhub` | Auditing a Go repository for CVEs and updating Go only when the target repository's go-toolset image (`ubi9`/`ubi10`) publishes the required tag. Two modes: minimal CVE remediation and latest-available upgrade. |
 | `release-notes` | `release-notes@evalhub` | Drafting OpenSSF-compliant, human-readable GitHub release notes for a tag or version. |
@@ -77,6 +77,28 @@ ln -s "$PWD/dev-skills/evalhub-bug-review" "$HOME/.claude/skills/evalhub-bug-rev
 
 Then invoke it by name (for example `/evalhub-bug-review`) from a checkout of the
 repository the skill operates on.
+
+## Benchmark onboarding
+
+Give the skill one or more upstream benchmark task links and ask it to add or
+validate the tasks in EvalHub. If a link covers several tasks, include the task
+IDs you want.
+
+> Use `benchmark-onboarding` to add `ethics_justice`. Use my current OpenShift
+> context and the `evalhub-test` tenant. Run connected and disconnected
+> validation and open the PRs. [Upstream task YAML](https://github.com/EleutherAI/lm-evaluation-harness/blob/main/lm_eval/tasks/hendrycks_ethics/justice.yaml)
+
+Include any environment details the skill cannot infer. These can include the
+target provider, OpenShift context and EvalHub tenant, model endpoint and auth
+Secret name, test image registry, or an existing dataset and tokenizer bundle
+in S3 or on a PVC.
+Share resource references and keep credentials out of the prompt.
+
+The skill checks what is already supported, verifies access to GitHub, the
+cluster, and the registry, and provisions missing test resources when it has
+the required access and credentials. It runs the API scenarios, writes a
+Markdown QA report, and opens PRs for the repositories that need changes.
+You can also attach the [skill file](benchmark-onboarding/SKILL.md) directly.
 
 ## Why these are separate plugins
 
