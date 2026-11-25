@@ -10,6 +10,7 @@ so installing `evalhub` does not install them for end users.
 | Skill | Plugin | Use it when |
 | ----- | ------ | ----------- |
 | `evalhub-bug-review` | `evalhub-bug-review@evalhub` | Reviewing an eval-hub or eval-hub-contrib pull request, branch, commit range, or working-tree change for bugs. Produces a severity-ranked findings table and never edits code. |
+| `benchmark-onboarding` | `benchmark-onboarding@evalhub` | Onboarding a benchmark from upstream task links through catalog changes, connected/disconnected API tests, image validation, a QA report, and PRs. |
 | `fix-fvt-test` | `fix-fvt-test@evalhub` | Diagnosing and fixing a failing FVT (godog) scenario on an OpenShift AI cluster, from the JUnit report, test log, and pod logs. |
 | `golang-toolchain-update` | `golang-toolchain-update@evalhub` | Auditing a Go repository for CVEs and updating Go only when the target repository's go-toolset image (`ubi9`/`ubi10`) publishes the required tag. Two modes: minimal CVE remediation and latest-available upgrade. |
 | `release-notes` | `release-notes@evalhub` | Drafting OpenSSF-compliant, human-readable GitHub release notes for a tag or version. |

@@ -266,12 +266,14 @@ Each one is published as its own opt-in marketplace plugin, so installing
 ```shell
 /plugin marketplace add eval-hub/eval-hub-skills
 /plugin install golang-toolchain-update@evalhub   # or evalhub-bug-review@evalhub,
+                                                  # benchmark-onboarding@evalhub,
                                                   # fix-fvt-test@evalhub, release-notes@evalhub
 ```
 
 | Skill | Description |
 | ----- | ----------- |
 | `evalhub-bug-review` | Bug-focused review of an eval-hub or eval-hub-contrib pull request, branch, commit range, or working-tree change. Returns a severity-ranked findings table and never edits code. |
+| `benchmark-onboarding` | Onboards a benchmark across eval-hub repositories and validates connected/disconnected API behavior, image compatibility, and dataset/tokenizer availability before opening PRs. |
 | `fix-fvt-test` | Diagnoses a failing FVT (godog) scenario on an OpenShift AI cluster from the JUnit report, test log, and pod logs, then proposes a fix. |
 | `golang-toolchain-update` | Scans a Go repository for vulnerabilities and updates the Go toolchain only when the repository's go-toolset image publishes a matching tag. Handles `ubi9` and `ubi10`, with minimal-CVE and latest-available modes. |
 | `release-notes` | Drafts OpenSSF-compliant, human-readable release notes (summary plus upgrade impact) for a tag or version. |
