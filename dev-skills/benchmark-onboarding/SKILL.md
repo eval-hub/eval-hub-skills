@@ -16,10 +16,12 @@ allowed-tools:
 
 # Benchmark Onboarding
 
-Use this skill when a user provides upstream benchmark links and asks to add or
-validate the benchmark in eval-hub. The full workflow updates the required
-repositories, builds and deploys the affected image, runs EvalHub API scenarios,
-writes a Markdown QA report, and opens the required PRs. Never merge a PR.
+The standard request names the benchmark, EvalHub provider, and upstream task
+URL. Load test environment details from the
+[local profile](references/environment.md). Preflight the task and its options
+first. When all required cases are feasible, update the repositories, run
+connected and disconnected API scenarios, and open the PRs with a QA report.
+Use a narrower scope when the user requests one. Never merge a PR.
 
 ## Workflow
 
@@ -31,16 +33,16 @@ writes a Markdown QA report, and opens the required PRs. Never merge a PR.
    duplicate catalog entries or empty PRs. If it is already supported, validate
    the existing path and report that no benchmark change is needed.
 3. Run the [access and resource preflight](references/workflow.md#access-and-resource-preflight).
-   Resolve the cluster, tenant, registry, model endpoint, and fixture locations
-   from the request and existing configuration. Reuse the configured access and
-   provision missing test resources before submitting jobs. Ask only when a
-   required decision, credential, or approval cannot be resolved.
+   Confirm the cluster, tenant, registry, model endpoint, and fixture source
+   with the local profile and existing logins. Ask only when a required
+   decision, credential, or approval cannot be resolved.
 4. Before editing the catalog, [discover options and plan coverage](references/workflow.md#option-discovery-and-coverage)
-   from the pinned framework task and adapter. Select and preflight the
-   connected and disconnected cases without waiting for the user to enumerate
-   options. For each repository that needs changes, start from current
-   `main` on a fresh branch and add the adapter, catalog, and API test changes.
-5. Build for the target cluster architecture, deploy with a unique image tag,
+   from the pinned framework task and adapter. Preflight both environments.
+   If a required case has a confirmed blocker, report it before onboarding
+   that benchmark. Otherwise, start from current `main` on fresh branches
+   and add the adapter, catalog, and API test changes.
+5. Provision missing test resources. Build for the target cluster architecture,
+   deploy with a unique image tag,
    and run the feasible cases with a small but real API evaluation. Record any
    blocked case and its evidence in the QA report. Verify dataset loading,
    tokenizer loading, result metrics, and offline asset use. For a

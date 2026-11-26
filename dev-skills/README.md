@@ -80,31 +80,25 @@ repository the skill operates on.
 
 ## Benchmark onboarding
 
-Give the skill one or more upstream benchmark task links and ask it to add or
-validate the tasks in EvalHub. If a link covers several tasks, include the task
-IDs you want. The skill discovers task options from the pinned framework and
-adapter, then checks which cases can run in each environment.
+Set up a [local test profile](benchmark-onboarding/references/environment.md)
+once, then give the skill the benchmark, provider, and upstream task URL.
 
-> Use `benchmark-onboarding` to add `ethics_justice`. Use my current OpenShift
-> context and the `evalhub-test` tenant. Run connected and disconnected
-> validation and open the PRs. [Upstream task YAML](https://github.com/EleutherAI/lm-evaluation-harness/blob/main/lm_eval/tasks/hendrycks_ethics/justice.yaml)
+```text
+Use benchmark-onboarding.
+Benchmark: DROP
+Provider: inspect
+Upstream URL: https://github.com/UKGovernmentBEIS/inspect_evals/blob/v0.26.0/src/inspect_evals/drop/drop.py
+```
 
-Include any environment details the skill cannot infer. These can include the
-target provider, OpenShift context and EvalHub tenant, model endpoint and auth
-Secret name, test image registry, or an existing dataset and tokenizer bundle
-in S3 or on a PVC.
-Share resource references and keep credentials out of the prompt.
+The skill discovers task options from the pinned framework and adapter.
+It reports confirmed blockers during preflight. For a viable task, it
+provisions missing test resources, runs connected and disconnected API
+scenarios, and opens the required PRs with the QA report. Ask for preflight
+only when you want a feasibility check. You can also attach the
+[skill file](benchmark-onboarding/SKILL.md) directly.
 
-The skill checks what is already supported, verifies access to GitHub, the
-cluster, and the registry, and provisions missing test resources when it has
-the required access and credentials. It runs the API scenarios, writes a
-Markdown QA report, and opens PRs for the repositories that need changes.
-You can also attach the [skill file](benchmark-onboarding/SKILL.md) directly.
-
-For a live demo, sign in to GitHub, OpenShift, and the test registry in advance.
-Name the EvalHub tenant and model endpoint in the prompt so the skill can
-proceed with the configured access. The tool host can still require approval
-for an action.
+Sign in to GitHub, OpenShift, and the test registry in advance. The tool host
+can still require approval for an action.
 
 ## Why these are separate plugins
 

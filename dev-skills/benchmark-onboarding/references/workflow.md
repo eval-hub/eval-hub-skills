@@ -26,9 +26,9 @@ updates the other.
 ## Access and resource preflight
 
 Reuse the authenticated GitHub client, logged-in OpenShift context, registry
-login, and approved credential sources. Resolve the target tenant and other
-settings from the request or an unambiguous test configuration. Confirm access
-with scoped read and permission checks before building or submitting jobs. If
+login, and approved credential sources. Resolve the test settings using the
+[local environment profile](environment.md). Confirm access with scoped read
+and permission checks before building or submitting jobs. If
 the current namespace is a default or shared namespace, verify the EvalHub
 tenant independently before writing there.
 
@@ -109,18 +109,22 @@ sandbox, or dependency requirements their own cases. Separate task options
 from provider controls such as timeouts and authentication. Record options
 that the current adapter cannot pass through and the evidence for that gap.
 
-Preflight each case in connected and disconnected modes. Identify which
+Preflight each case in connected and disconnected modes. The standard request
+requires both and covers meaningful benchmark modes exposed by the framework.
+Record unrelated provider controls as inapplicable when the task does not use
+them. A user can request a narrower run explicitly. Identify which
 assets can be staged, which network calls must happen during evaluation, and
 which imports, tools, endpoints, and credentials the selected branch needs.
 Compare these requirements against the pinned image, approved model routes,
 and pod egress allowlist. Use a scoped task load or dependency check when
-static inspection leaves a material question. Run feasible cases through
-the EvalHub API and verify the option took effect in logs, metrics, or
-artifacts. If preflight establishes a policy or dependency blocker, record the
-case as `BLOCKED` with evidence and continue independent cases. Keep the
-existing egress policy in force and avoid submitting a job that would try a
-known disallowed call. Report partial coverage when a requested mode is
-blocked. Gate catalog edits on at least one requested mode passing preflight.
+static inspection leaves a material question. If a required case has a
+confirmed blocker under the configured policy, dependencies, or model, report
+it as `BLOCKED` with evidence and the smallest change that would unblock it.
+Finish independent preflight checks and stop that benchmark before catalog
+edits or PR creation. Continue with other benchmarks in the request. A test
+fixture that can be staged using the configured source is a prerequisite to
+provision. After preflight, run API cases and verify that options took effect
+in logs, metrics, or artifacts. Keep the scoped egress policy in force.
 
 For example, the Inspect BrowseComp task in `inspect-evals==0.26.0` declares
 `with_browsing: bool = False`. The adapter forwards
@@ -129,7 +133,8 @@ Cover the default and enabled modes separately. Stage the pinned CSV for
 offline use and check the sandbox requirements for each case. The enabled
 mode also uses live web search and browser page retrieval. With only the
 configured sidecar services allowed, report the browsing case as `BLOCKED`
-and continue with the default mode if its preflight passes.
+during preflight. A request limited to the mode without browsing can proceed
+once its other requirements pass.
 
 ## API scenarios and cluster validation
 
