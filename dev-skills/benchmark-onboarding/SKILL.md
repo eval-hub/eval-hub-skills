@@ -35,14 +35,15 @@ writes a Markdown QA report, and opens the required PRs. Never merge a PR.
    from the request and existing configuration. Reuse the configured access and
    provision missing test resources before submitting jobs. Ask only when a
    required decision, credential, or approval cannot be resolved.
-4. For each repository that needs changes, start from current `main` on a fresh
-   branch. Update the benchmark catalog/adapter and generate focused API
-   scenarios that cover every applicable option and parameter in connected and
-   disconnected modes. Read [workflow.md](references/workflow.md) for source,
-   image, and test requirements.
+4. Before editing the catalog, [discover options and plan coverage](references/workflow.md#option-discovery-and-coverage)
+   from the pinned framework task and adapter. Select and preflight the
+   connected and disconnected cases without waiting for the user to enumerate
+   options. For each repository that needs changes, start from current
+   `main` on a fresh branch and add the adapter, catalog, and API test changes.
 5. Build for the target cluster architecture, deploy with a unique image tag,
-   and run the API scenarios with a small but real evaluation. Verify dataset
-   loading, tokenizer loading, result metrics, and offline asset use. For a
+   and run the feasible cases with a small but real API evaluation. Record any
+   blocked case and its evidence in the QA report. Verify dataset loading,
+   tokenizer loading, result metrics, and offline asset use. For a
    disconnected run, set the provider's offline controls and install a scoped
    egress allowlist before the job starts. Follow
    [egress-policy.md](references/egress-policy.md) and record its enforcement
@@ -61,8 +62,8 @@ writes a Markdown QA report, and opens the required PRs. Never merge a PR.
   test environment. Carry them through without asking for confirmation at each
   step. Respect the tool host's approvals and any limits in the request.
 - Test the same provider and benchmark ID that users submit through EvalHub.
-- Test only options the task/provider actually supports. Record unsupported or
-  inapplicable options with the reason; do not send meaningless combinations.
+- Exercise supported options. Record upstream options the adapter cannot expose
+  and configurations that are inapplicable or blocked, with the reason.
 - Reuse existing model-auth Secret references when present. If a required Secret
   is missing, create it only from credentials supplied by the user or an
   approved credential source. Never print or copy secret values into requests,
@@ -87,6 +88,6 @@ writes a Markdown QA report, and opens the required PRs. Never merge a PR.
   enforcing network policy. Treat the flags as application behavior, not a
   network boundary. Do not allow broad public egress; add only configured
   services and the minimum ports required by the run.
-- Open PRs only for repositories with a real diff. If a required test fails,
-  include the failure analysis and mark the PR draft when the defect blocks
-  acceptance.
+- Open PRs only for repositories with a real diff. If a required case fails
+  or is blocked, include the analysis and keep the PR in draft while the
+  blocker prevents acceptance.

@@ -89,21 +89,47 @@ and asset stagers or manifests required by disconnected testing. Keep the
 provider ID and benchmark ID consistent with contrib. Follow the test helpers
 already in `tests/features`; do not invent a parallel schema or fixture format.
 
-## Parameter coverage
+## Option discovery and coverage
 
-Read the provider schema, adapter parameter handling, and upstream task config.
-Create a table for every applicable parameter with its declared type/default,
-supported values, test payload, and expected behavior. Include each meaningful
-enum value and both sides of relevant booleans. Cover valid boundaries and
-document invalid values only where the API promises validation. Use focused
-cases or pairwise combinations to avoid an unbounded Cartesian product, while
-still asserting every applicable parameter at least once.
+Build the test matrix before editing the provider catalog, even if the user
+only supplies a task link. Read the task definition at the framework version
+pinned in the adapter image. Check its callable signature, configuration and
+inherited defaults, CLI help or registry metadata, and branches selected by
+each option. Cross-check the provider schema and the adapter code that builds
+the framework call. Include task options passed through generic fields even
+when the provider catalog does not list them individually. Record the actual
+EvalHub request field and check that the value reaches the framework.
 
-Separate task options from runtime controls. A task's dataset subset, split,
-few-shot count, and tokenizer can be benchmark-specific; model URL, batch size,
-timeouts, offline references, and authentication may be provider/runtime
-controls. Do not include generation-only fields in a log-likelihood task unless
-the adapter consumes them.
+For each applicable option, record its type, default, meaningful values,
+source, test payload, and expected behavior. Include the default case, both
+values of relevant booleans, each meaningful enum value, and representative
+boundaries. Combine independent options where their behavior can still be
+verified. Give options that change the solver, scorer, dataset, endpoint,
+sandbox, or dependency requirements their own cases. Separate task options
+from provider controls such as timeouts and authentication. Record options
+that the current adapter cannot pass through and the evidence for that gap.
+
+Preflight each case in connected and disconnected modes. Identify which
+assets can be staged, which network calls must happen during evaluation, and
+which imports, tools, endpoints, and credentials the selected branch needs.
+Compare these requirements against the pinned image, approved model routes,
+and pod egress allowlist. Use a scoped task load or dependency check when
+static inspection leaves a material question. Run feasible cases through
+the EvalHub API and verify the option took effect in logs, metrics, or
+artifacts. If preflight establishes a policy or dependency blocker, record the
+case as `BLOCKED` with evidence and continue independent cases. Keep the
+existing egress policy in force and avoid submitting a job that would try a
+known disallowed call. Report partial coverage when a requested mode is
+blocked. Gate catalog edits on at least one requested mode passing preflight.
+
+For example, the Inspect BrowseComp task in `inspect-evals==0.26.0` declares
+`with_browsing: bool = False`. The adapter forwards
+`benchmarks[].parameters.task_args.with_browsing` to Inspect's `-T` option.
+Cover the default and enabled modes separately. Stage the pinned CSV for
+offline use and check the sandbox requirements for each case. The enabled
+mode also uses live web search and browser page retrieval. With only the
+configured sidecar services allowed, report the browsing case as `BLOCKED`
+and continue with the default mode if its preflight passes.
 
 ## API scenarios and cluster validation
 

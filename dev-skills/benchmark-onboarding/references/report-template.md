@@ -33,11 +33,17 @@ when the evaluation job did not reach `completed`.
 
 | Scenario / annotation | Mode | Parameters exercised | API / job result | Evidence |
 | --- | --- | --- | --- | --- |
-| `<case>` | Connected | `<values>` | `<status and metrics>` | `<job ID/log path>` |
-| `<case>` | Disconnected | `<values and test_data_ref>` | `<status and metrics>` | `<job ID/log path>` |
+| `<case>` | Connected | `<values>` | `<status and metrics, or BLOCKED with reason>` | `<job ID/log path or preflight evidence>` |
+| `<case>` | Disconnected | `<values and test_data_ref>` | `<status and metrics, or BLOCKED with reason>` | `<job ID/log path or preflight evidence>` |
 
-List the parameter-coverage matrix or link to it. Note values that are
-unsupported and why.
+### Option coverage
+
+| Option and source | Type / default | Values and API field | Expected behavior / requirements | Connected result | Disconnected result |
+| --- | --- | --- | --- | --- | --- |
+| `<option and pinned task or adapter source>` | `<type and default>` | `<values and request field>` | `<behavior, dependencies, and required network routes>` | `<scenario or preflight evidence>` | `<scenario or preflight evidence>` |
+
+Include defaults, behavior-changing values, and options the adapter cannot
+expose. For a blocked case, record the specific dependency or policy rule.
 
 ### Egress controls
 

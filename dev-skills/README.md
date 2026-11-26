@@ -82,7 +82,8 @@ repository the skill operates on.
 
 Give the skill one or more upstream benchmark task links and ask it to add or
 validate the tasks in EvalHub. If a link covers several tasks, include the task
-IDs you want.
+IDs you want. The skill discovers task options from the pinned framework and
+adapter, then checks which cases can run in each environment.
 
 > Use `benchmark-onboarding` to add `ethics_justice`. Use my current OpenShift
 > context and the `evalhub-test` tenant. Run connected and disconnected
