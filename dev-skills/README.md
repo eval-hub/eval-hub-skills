@@ -100,6 +100,11 @@ the required access and credentials. It runs the API scenarios, writes a
 Markdown QA report, and opens PRs for the repositories that need changes.
 You can also attach the [skill file](benchmark-onboarding/SKILL.md) directly.
 
+For a live demo, sign in to GitHub, OpenShift, and the test registry in advance.
+Name the EvalHub tenant and model endpoint in the prompt so the skill can
+proceed with the configured access. The tool host can still require approval
+for an action.
+
 ## Why these are separate plugins
 
 `evalhub`, `evalhub-discovery`, `evalhub-eval`, and `evalhub-jobs` are the

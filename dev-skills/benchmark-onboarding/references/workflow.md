@@ -23,7 +23,25 @@ exposed through distinct providers (for example, the native
 provider the user intends to add; do not assume one provider's registration
 updates the other.
 
-## Cluster test resource preflight
+## Access and resource preflight
+
+Reuse the authenticated GitHub client, logged-in OpenShift context, registry
+login, and approved credential sources. Resolve the target tenant and other
+settings from the request or an unambiguous test configuration. Confirm access
+with scoped read and permission checks before building or submitting jobs. If
+the current namespace is a default or shared namespace, verify the EvalHub
+tenant independently before writing there.
+
+Proceed with the requested branch edits, builds and pushes to the test
+registry, test resources, API jobs, reports, and PR creation using the access
+already available. Use unique names for resources created by the run. Remove
+only resources the run created and can identify. Ask before changing existing
+shared resources outside the requested scope, publishing to an unapproved
+destination, or choosing between plausible targets when the choice affects
+external changes. When clarification is needed, combine related blockers in
+one request and continue work that does not depend on the answer. Request tool
+approval only for the required action if the host requires it. Report denied
+or unavailable access and the steps it blocks.
 
 Before submitting a job, derive its dependencies from the request fixture,
 provider runtime, test-data reference, init containers, and model endpoint. In

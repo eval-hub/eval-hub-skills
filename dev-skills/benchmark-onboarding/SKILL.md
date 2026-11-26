@@ -30,12 +30,11 @@ writes a Markdown QA report, and opens the required PRs. Never merge a PR.
    the source task to the actual EvalHub provider and its task ID. Do not create
    duplicate catalog entries or empty PRs. If it is already supported, validate
    the existing path and report that no benchmark change is needed.
-3. Before editing, verify GitHub access, the intended cluster and tenant, image
-   build/publish capability, and access to connected and disconnected test data.
-   Inventory and provision the required test PVCs, model credentials, dataset
-   source credentials, and other namespace-scoped resources before submitting
-   jobs. If required credentials or a usable storage class are unavailable,
-   explain the blocker and discuss options before making implementation changes.
+3. Run the [access and resource preflight](references/workflow.md#access-and-resource-preflight).
+   Resolve the cluster, tenant, registry, model endpoint, and fixture locations
+   from the request and existing configuration. Reuse the configured access and
+   provision missing test resources before submitting jobs. Ask only when a
+   required decision, credential, or approval cannot be resolved.
 4. For each repository that needs changes, start from current `main` on a fresh
    branch. Update the benchmark catalog/adapter and generate focused API
    scenarios that cover every applicable option and parameter in connected and
@@ -58,6 +57,9 @@ writes a Markdown QA report, and opens the required PRs. Never merge a PR.
 
 ## Working rules
 
+- An onboarding request authorizes routine steps in the agreed repositories and
+  test environment. Carry them through without asking for confirmation at each
+  step. Respect the tool host's approvals and any limits in the request.
 - Test the same provider and benchmark ID that users submit through EvalHub.
 - Test only options the task/provider actually supports. Record unsupported or
   inapplicable options with the reason; do not send meaningless combinations.
