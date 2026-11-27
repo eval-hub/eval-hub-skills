@@ -28,6 +28,14 @@
       "skills": ["./dev-skills/evalhub-bug-review"]
     },
     {
+      "name": "benchmark-onboarding",
+      "description": "Onboard and validate benchmarks across eval-hub repositories with connected and disconnected API tests, image builds, QA reports, and pull requests",
+      "version": "0.1.0",
+      "license": "Apache-2.0",
+      "source": { "source": "github", "repo": "eval-hub/eval-hub-skills", "ref": "main" },
+      "skills": ["./dev-skills/benchmark-onboarding"]
+    },
+    {
       "name": "fix-fvt-test",
       "description": "Diagnose a failing FVT (godog) scenario on an OpenShift AI cluster from the JUnit report, test log, and pod logs; produces a root-cause analysis and, when asked, a fix PR",
       "version": "0.1.0",

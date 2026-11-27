@@ -10,6 +10,7 @@ so installing `evalhub` does not install them for end users.
 | Skill | Plugin | Use it when |
 | ----- | ------ | ----------- |
 | `evalhub-bug-review` | `evalhub-bug-review@evalhub` | Reviewing an eval-hub or eval-hub-contrib pull request, branch, commit range, or working-tree change for bugs. Produces a severity-ranked findings table and never edits code. |
+| [`benchmark-onboarding`](#benchmark-onboarding) | `benchmark-onboarding@evalhub` | Onboarding a benchmark from upstream task links through catalog changes, connected/disconnected API tests, image validation, a QA report, and PRs. |
 | `fix-fvt-test` | `fix-fvt-test@evalhub` | Diagnosing and fixing a failing FVT (godog) scenario on an OpenShift AI cluster, from the JUnit report, test log, and pod logs. |
 | `golang-toolchain-update` | `golang-toolchain-update@evalhub` | Auditing a Go repository for CVEs and updating Go only when the target repository's go-toolset image (`ubi9`/`ubi10`) publishes the required tag. Two modes: minimal CVE remediation and latest-available upgrade. |
 | `release-notes` | `release-notes@evalhub` | Drafting OpenSSF-compliant, human-readable GitHub release notes for a tag or version. |
@@ -76,6 +77,28 @@ ln -s "$PWD/dev-skills/evalhub-bug-review" "$HOME/.claude/skills/evalhub-bug-rev
 
 Then invoke it by name (for example `/evalhub-bug-review`) from a checkout of the
 repository the skill operates on.
+
+## Benchmark onboarding
+
+Set up a [local test profile](benchmark-onboarding/references/environment.md)
+once, then give the skill the benchmark, provider, and upstream task URL.
+
+```text
+Use benchmark-onboarding.
+Benchmark: DROP
+Provider: inspect
+Upstream URL: https://github.com/UKGovernmentBEIS/inspect_evals/blob/v0.26.0/src/inspect_evals/drop/drop.py
+```
+
+The skill discovers task options from the pinned framework and adapter.
+It reports confirmed blockers during preflight. For a viable task, it
+provisions missing test resources, runs connected and disconnected API
+scenarios, and opens the required PRs with the QA report. Ask for preflight
+only when you want a feasibility check. You can also attach the
+[skill file](benchmark-onboarding/SKILL.md) directly.
+
+Sign in to GitHub, OpenShift, and the test registry in advance. The tool host
+can still require approval for an action.
 
 ## Why these are separate plugins
 
