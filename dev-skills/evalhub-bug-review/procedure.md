@@ -170,19 +170,32 @@ read-only where cheap, and never let a tool mutate the working tree unasked.
 **5a — eval-hub (Go):**
 
 ```bash
+before=$(git status --porcelain --ignored)  # baseline, before any probe
 gofmt -l .                # lists unformatted files; make fmt would rewrite them
 make lint && go build ./...
 go test ./internal/eval_hub/<pkg>/... -run '<TestName>' -count=1
 make verify-api-docs      # only when docs/src/openapi.yaml changed
-git diff --stat           # must be unchanged by the review
+git diff --stat           # tracked files: must show no change from the review
+diff <(echo "$before") <(git status --porcelain --ignored)   # new/changed entries
 ```
+
+`make lint` installs golangci-lint under `bin/tools/`, and `make
+verify-api-docs` runs `npm i @redocly/cli` when `node_modules/` is missing.
+Both are gitignored and are left on disk, and the checkout already carries
+ignored entries (`bin/`, `node_modules/`, `.venv/`), so the comparison has to
+be against the baseline captured before the first probe: plain `git status
+--porcelain` omits ignored paths entirely, and an empty result proves nothing
+about a checkout that was already populated. Also confirm `package-lock.json`
+is still unmodified.
 
 **5b — eval-hub-contrib (Python):** there is no `make lint`/`gofmt` here, and
 `make test-<adapter>` creates `.venv` and installs packages. Prefer the
 side-effect-free checks first, and reuse an existing adapter venv when present:
 
 ```bash
-git diff --stat                                   # unchanged by the review
+root=$(git rev-parse --show-toplevel)          # probes cd into the adapter
+before=$(git -C "$root" status --porcelain --ignored)   # baseline, before any probe
+git diff --stat                                   # unchanged tracked files
 # syntax only, no __pycache__ written
 python3 -c 'import ast; ast.parse(open("adapters/<name>/main.py").read())'
 # provider.yaml parses and its catalog is what you claim it is
@@ -194,11 +207,24 @@ for p in sorted(pathlib.Path("adapters").glob("*/provider.yaml")):
     print(p.parent.name, "id=", d.get("id"), "type=", d.get("type"),
           "benchmarks=", len(d.get("benchmarks") or []))
 PY
-# one adapter's suite, offline tests only (CI uses -m "not local")
-cd adapters/<name> && .venv/bin/python -m pytest tests/ -q -m "not local"
+# one adapter's suite, offline tests only (CI uses -m "not local");
+# no .pytest_cache/ or __pycache__/ left behind
+cd adapters/<name> && PYTHONDONTWRITEBYTECODE=1 \
+  .venv/bin/python -m pytest tests/ -q -m "not local" -p no:cacheprovider
 # optional style check only for adapters that ship a ruff.toml
 .venv/bin/python -m ruff check .
+# only the entries the review itself created; the rest was in the baseline
+diff <(echo "$before") <(git -C "$root" status --porcelain --ignored)
 ```
+
+`uv run --with pyyaml` creates no `.venv` at the repository root (there is no
+project there) — it only fills the uv cache. Adapters usually already carry
+`.pytest_cache/` and `__pycache__/` (this repository has dozens of ignored
+entries), so if a probe that could not use the flags above writes caches,
+remove only the paths the baseline comparison reports as new — never `rm -rf` a
+cache directory that was there before. `git diff --stat` shows tracked changes
+only and plain `git status --porcelain` omits ignored paths, so the baseline
+diff is what proves the tree is as you found it.
 
 If no `.venv` exists, do not run `make test-<adapter>` just to see output: run
 `python3 -m pytest` only if the runtime deps are already importable, otherwise
@@ -224,6 +250,14 @@ image in contrib), open questions. If nothing is wrong, say
 
 - **Post to the PR** — `gh pr review` or `gh api
   repos/{owner}/{repo}/pulls/<n>/comments`; show the text, get confirmation.
+  This is the one thing the review cannot undo by itself: to retract it, note
+  the comment/review id and `gh api -X DELETE
+  repos/{owner}/{repo}/pulls/comments/<id>`. A submitted review is dismissed,
+  not deleted: `gh api -X PUT
+  repos/{owner}/{repo}/pulls/<n>/reviews/<id>/dismissals -f message='<why>'`
+  (`message` is a required body field). Dismissing needs "Pull requests" write
+  access, and on a protected branch you must be a repository administrator or
+  be in the list of people or teams allowed to dismiss reviews.
 - **Fix the findings** — separate pass, regression test first, then the
   repository's own gate:
   - eval-hub: `make fmt lint` and `go test ./internal/... ./cmd/... ./pkg/...`.
