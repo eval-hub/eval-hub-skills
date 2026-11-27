@@ -433,6 +433,7 @@ is the author telling you the change is not self-contained.
       else
         echo 'FETCH FAILED: contract unverified, not "parameter removed"' >&2
       fi
+      rm -f "$f"
       ```
 
       `-f` (with `-L`) turns an HTTP error, a moved adapter, or a redirect that
@@ -482,6 +483,7 @@ probe() {  # probe <path under adapters/> <extended regex>
   else
     echo "FETCH FAILED: $1 — contract unverified, not drift" >&2
   fi
+  rm -f "$f"   # one temp file per probe otherwise accumulates in /tmp
 }
 
 probe deepeval/main.py 'eval_model_url'

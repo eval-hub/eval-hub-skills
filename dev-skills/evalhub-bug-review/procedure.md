@@ -174,15 +174,23 @@ gofmt -l .                # lists unformatted files; make fmt would rewrite them
 make lint && go build ./...
 go test ./internal/eval_hub/<pkg>/... -run '<TestName>' -count=1
 make verify-api-docs      # only when docs/src/openapi.yaml changed
-git diff --stat           # must be unchanged by the review
+git diff --stat           # must show no change from the review
+git status --porcelain    # untracked/ignored files are invisible to diff --stat
 ```
+
+`make lint` installs golangci-lint under `bin/tools/`, and `make
+verify-api-docs` runs `npm i @redocly/cli` when `node_modules/` is missing.
+Both are gitignored and are left on disk: compare `git status --porcelain`
+with the tree you started from instead of expecting it to be empty, and check
+`package-lock.json` stays unmodified.
 
 **5b — eval-hub-contrib (Python):** there is no `make lint`/`gofmt` here, and
 `make test-<adapter>` creates `.venv` and installs packages. Prefer the
 side-effect-free checks first, and reuse an existing adapter venv when present:
 
 ```bash
-git diff --stat                                   # unchanged by the review
+git diff --stat                                   # unchanged tracked files
+git status --porcelain                            # nothing new, ignoring .venv/
 # syntax only, no __pycache__ written
 python3 -c 'import ast; ast.parse(open("adapters/<name>/main.py").read())'
 # provider.yaml parses and its catalog is what you claim it is
@@ -194,11 +202,19 @@ for p in sorted(pathlib.Path("adapters").glob("*/provider.yaml")):
     print(p.parent.name, "id=", d.get("id"), "type=", d.get("type"),
           "benchmarks=", len(d.get("benchmarks") or []))
 PY
-# one adapter's suite, offline tests only (CI uses -m "not local")
-cd adapters/<name> && .venv/bin/python -m pytest tests/ -q -m "not local"
+# one adapter's suite, offline tests only (CI uses -m "not local");
+# no .pytest_cache/ or __pycache__/ left behind
+cd adapters/<name> && PYTHONDONTWRITEBYTECODE=1 \
+  .venv/bin/python -m pytest tests/ -q -m "not local" -p no:cacheprovider
 # optional style check only for adapters that ship a ruff.toml
 .venv/bin/python -m ruff check .
 ```
+
+`uv run --with pyyaml` creates no `.venv` at the repository root (there is no
+project there) — it only fills the uv cache. If a probe does write caches
+(`rm -rf .pytest_cache tests/__pycache__`), delete them before finishing:
+`git diff --stat` shows tracked changes only, so use `git status --porcelain`
+(or `--ignored`) to prove the tree is as you found it.
 
 If no `.venv` exists, do not run `make test-<adapter>` just to see output: run
 `python3 -m pytest` only if the runtime deps are already importable, otherwise
@@ -224,6 +240,11 @@ image in contrib), open questions. If nothing is wrong, say
 
 - **Post to the PR** — `gh pr review` or `gh api
   repos/{owner}/{repo}/pulls/<n>/comments`; show the text, get confirmation.
+  This is the one thing the review cannot undo by itself: to retract it, note
+  the comment/review id and `gh api -X DELETE
+  repos/{owner}/{repo}/pulls/comments/<id>` (a submitted review is dismissed
+  with `-X PUT repos/{owner}/{repo}/pulls/<n>/reviews/<id>/dismiss`, not
+  deleted).
 - **Fix the findings** — separate pass, regression test first, then the
   repository's own gate:
   - eval-hub: `make fmt lint` and `go test ./internal/... ./cmd/... ./pkg/...`.
